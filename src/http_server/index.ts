@@ -1,17 +1,18 @@
-import fs from 'node:fs';
+import fsPromises from 'node:fs/promises';
 import http from 'node:http';
 import path from 'node:path';
+import { HTTPStatusCode } from '../types/http.js';
 
-export const httpServer = http.createServer(function (req, res) {
+export const httpServer = http.createServer(async (req, res) => {
   const __dirname = path.resolve(path.dirname(''));
-  const file_path = __dirname + (req.url === '/' ? '/front/index.html' : '/front' + req.url);
-  fs.readFile(file_path, function (err, data) {
-    if (err) {
-      res.writeHead(404);
-      res.end(JSON.stringify(err));
-      return;
-    }
-    res.writeHead(200);
+  const filePath = __dirname + (req.url === '/' ? '/front/index.html' : '/front' + req.url);
+
+  try {
+    const data = await fsPromises.readFile(filePath);
+    res.writeHead(HTTPStatusCode.OK);
     res.end(data);
-  });
+  } catch (err) {
+    res.writeHead(HTTPStatusCode.NotFound);
+    res.end(JSON.stringify(err));
+  }
 });
