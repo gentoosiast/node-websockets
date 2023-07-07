@@ -14,7 +14,7 @@ export const parseMessage = async (unparsedMessage: string): Promise<ClientMessa
           return;
         }
 
-        const data = JSON.parse(unparsedData);
+        const data = unparsedData.length > 0 ? JSON.parse(unparsedData) : unparsedData;
 
         resolve({ ...message, data });
       }

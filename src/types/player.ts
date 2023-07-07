@@ -1,8 +1,9 @@
-export interface PlayerDto {
+export interface PlayerRegisterDto {
   name: string;
   password: string;
 }
 
-export interface Player extends PlayerDto {
-  index: number; // Player id
+export interface PlayerDto {
+  name: string;
+  index: number;
 }

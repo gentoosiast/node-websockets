@@ -1,12 +1,13 @@
+import { Player } from './player.js';
 import { isRegistrationRequest } from './helpers/validators.js';
 import { PlayerStore } from './store/player-store.js';
+import { WebSocketWithId } from './types/websocket.js';
 import {
   ClientMessage,
   MessageType,
   RegistrationFailureResponse,
   RegistrationSuccessResponse,
 } from './types/messages.js';
-import { Player } from './types/player.js';
 
 const getErrorResponse = (errorText: string): RegistrationFailureResponse => ({
   type: MessageType.Registration,
@@ -20,8 +21,8 @@ const getErrorResponse = (errorText: string): RegistrationFailureResponse => ({
 const getSuccessResponse = (player: Player): RegistrationSuccessResponse => ({
   type: MessageType.Registration,
   data: {
-    name: player.name,
-    index: player.index,
+    name: player.getName(),
+    index: player.getId(),
     error: false,
   },
   id: 0,
@@ -29,6 +30,7 @@ const getSuccessResponse = (player: Player): RegistrationSuccessResponse => ({
 
 export const handleRegistration = (
   message: ClientMessage,
+  socket: WebSocketWithId,
   playerStore: PlayerStore
 ): RegistrationFailureResponse | RegistrationSuccessResponse => {
   if (!isRegistrationRequest(message)) {
@@ -39,10 +41,10 @@ export const handleRegistration = (
   const existingPlayer = playerStore.get(playerDto.name);
 
   if (!existingPlayer) {
-    return getSuccessResponse(playerStore.add(playerDto));
+    return getSuccessResponse(playerStore.add(playerDto, socket));
   }
 
-  if (existingPlayer.password === playerDto.password) {
+  if (existingPlayer.checkPassword(playerDto.password)) {
     return getSuccessResponse(existingPlayer);
   }
 
