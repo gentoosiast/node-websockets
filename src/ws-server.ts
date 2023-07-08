@@ -52,12 +52,12 @@ const processMessage = (message: ClientMessage, ws: WebSocketWithId): void => {
     }
 
     case MessageType.Attack: {
-      handleAttack(message, gameStore);
+      handleAttack(message, gameStore, playerStore);
       break;
     }
 
     case MessageType.RandomAttack: {
-      handleRandomAttack(message, gameStore);
+      handleRandomAttack(message, gameStore, playerStore);
       break;
     }
 

@@ -10,6 +10,7 @@ import {
 import { PlayerStore } from './store/player-store.js';
 import { GameStore } from './store/game-store.js';
 import { RoomStore } from './store/room-store.js';
+import { highScores } from './store/score-table.js';
 import { Position } from './types/board.js';
 import {
   AttackResponse,
@@ -22,10 +23,13 @@ import {
   RegistrationSuccessResponse,
   UpdateRoomResponse,
   CreateGameResponse,
+  UpdateWinnersResponse,
+  FinishGameResponse,
 } from './types/messages.js';
 import { Ship } from './types/ship.js';
 import { WebSocketWithId } from './types/websocket.js';
 import { Game } from './game.js';
+import { Winner } from './types/player.js';
 
 const getRegistrationErrorResponse = (errorText: string): RegistrationFailureResponse => ({
   type: MessageType.Registration,
@@ -206,7 +210,31 @@ export const createAttackResponse = (position: Position, playerId: number, statu
   };
 };
 
-const attack = (gameStore: GameStore, gameId: number, playerId: number, position: Position | null): void => {
+const createUpdateWinnersResponse = (winners: Winner[]): UpdateWinnersResponse => {
+  return {
+    type: MessageType.UpdateWinners,
+    data: winners,
+    id: 0,
+  };
+};
+
+const createFinishGameResponse = (winnerId: number): FinishGameResponse => {
+  return {
+    type: MessageType.FinishGame,
+    data: {
+      winPlayer: winnerId,
+    },
+    id: 0,
+  };
+};
+
+const attack = (
+  gameStore: GameStore,
+  gameId: number,
+  playerStore: PlayerStore,
+  playerId: number,
+  position: Position | null
+): void => {
   const game = gameStore.get(gameId);
 
   if (!game) {
@@ -220,11 +248,24 @@ const attack = (gameStore: GameStore, gameId: number, playerId: number, position
     shootResult.adjacent.forEach((position) => {
       game.broadcast(stringifyMessage(createAttackResponse(position, playerId, AttackStatus.Miss)));
     });
+
+    if (game.isGameOver()) {
+      game.getPlayers().forEach((player) => {
+        if (playerId === player.getId()) {
+          highScores.addWinner(player.getName());
+          playerStore.broadcast(stringifyMessage(createUpdateWinnersResponse(highScores.getTopTenPlayers())));
+        }
+        player.setGameId(null);
+      });
+      gameStore.delete(gameId);
+      game.broadcast(stringifyMessage(createFinishGameResponse(playerId)));
+      return;
+    }
   }
   game.broadcast(stringifyMessage(createTurnResponse(game.getCurrentPlayerId())));
 };
 
-export const handleRandomAttack = (message: ClientMessage, gameStore: GameStore): void => {
+export const handleRandomAttack = (message: ClientMessage, gameStore: GameStore, playerStore: PlayerStore): void => {
   if (!isRandomAttackRequest(message)) {
     console.error(`Random attack: invalid message format`);
     return;
@@ -232,15 +273,15 @@ export const handleRandomAttack = (message: ClientMessage, gameStore: GameStore)
 
   const { gameId, indexPlayer: playerId } = message.data;
 
-  attack(gameStore, gameId, playerId, null);
+  attack(gameStore, gameId, playerStore, playerId, null);
 };
 
-export const handleAttack = (message: ClientMessage, gameStore: GameStore): void => {
+export const handleAttack = (message: ClientMessage, gameStore: GameStore, playerStore: PlayerStore): void => {
   if (!isAttackRequest(message)) {
     console.error(`Attack: invalid message format`);
     return;
   }
 
   const { gameId, indexPlayer: playerId, x, y } = message.data;
-  attack(gameStore, gameId, playerId, { x, y });
+  attack(gameStore, gameId, playerStore, playerId, { x, y });
 };

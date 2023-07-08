@@ -14,6 +14,7 @@ type PlayerMap = Map<number, PlayerData>; // player id, player data
 export class Game {
   private boardsWithShips = 0;
   private currentPlayerId = -1;
+  private isGameOverStatus = false;
 
   constructor(private id: number, private players: PlayerMap = new Map()) {}
 
@@ -23,6 +24,10 @@ export class Game {
 
   isGameReadyToStart(): boolean {
     return this.boardsWithShips === 2;
+  }
+
+  isGameOver(): boolean {
+    return this.isGameOverStatus;
   }
 
   getCurrentPlayerId(): number {
@@ -96,6 +101,10 @@ export class Game {
 
     const shootResult = opponentData.board.shootAtRandomPosition();
 
+    if (opponentData.board.getNumberOfRemainingShips() === 0) {
+      this.isGameOverStatus = true;
+    }
+
     if (shootResult.status === AttackStatus.Miss) {
       this.switchCurrentPlayer();
     }
@@ -125,6 +134,10 @@ export class Game {
     }
 
     const shootResult = opponentData.board.shoot(position);
+
+    if (opponentData.board.getNumberOfRemainingShips() === 0) {
+      this.isGameOverStatus = true;
+    }
 
     if (shootResult.status === AttackStatus.Miss) {
       this.switchCurrentPlayer();
