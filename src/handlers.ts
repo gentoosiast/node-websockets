@@ -53,10 +53,12 @@ const getRegistrationSuccessResponse = (player: Player): RegistrationSuccessResp
 export const handleRegistration = (
   message: ClientMessage,
   socket: WebSocketWithId,
-  playerStore: PlayerStore
-): RegistrationFailureResponse | RegistrationSuccessResponse => {
+  playerStore: PlayerStore,
+  roomStore: RoomStore
+): void => {
   if (!isRegistrationRequest(message)) {
-    return getRegistrationErrorResponse('Registration request message have invalid format');
+    socket.send(stringifyMessage(getRegistrationErrorResponse('Registration request message have invalid format')));
+    return;
   }
 
   const playerDto = message.data;
@@ -67,14 +69,18 @@ export const handleRegistration = (
     console.log(
       `Registration.successful. name: ${player.name}, id: ${player.getId()}, socketId: ${player.getSocketId()}`
     );
-    return getRegistrationSuccessResponse(player);
+    socket.send(stringifyMessage(getRegistrationSuccessResponse(player)));
+    socket.send(stringifyMessage(createUpdateRoomsResponse(roomStore)));
+    return;
   }
 
   if (existingPlayer.checkPassword(playerDto.password)) {
-    return getRegistrationSuccessResponse(existingPlayer);
+    socket.send(stringifyMessage(getRegistrationSuccessResponse(existingPlayer)));
+    socket.send(stringifyMessage(createUpdateRoomsResponse(roomStore)));
+    return;
   }
 
-  return getRegistrationErrorResponse('Invalid password');
+  socket.send(stringifyMessage(getRegistrationErrorResponse('Invalid password')));
 };
 
 export const createGameStartResponse = (playerId: number, playerShips: Ship[]): StartGameResponse => {
@@ -88,15 +94,16 @@ export const createGameStartResponse = (playerId: number, playerShips: Ship[]): 
   };
 };
 
-export const broadcastUpdateRooms = (playerStore: PlayerStore, roomStore: RoomStore): void => {
-  const message: UpdateRoomResponse = {
+const createUpdateRoomsResponse = (roomStore: RoomStore): UpdateRoomResponse => {
+  return {
     type: MessageType.UpdateRoom,
     data: roomStore.getAll(),
     id: 0,
   };
+};
 
-  console.log(`broadcast message: ${JSON.stringify(message)}`);
-  playerStore.broadcast(stringifyMessage(message));
+export const broadcastUpdateRooms = (playerStore: PlayerStore, roomStore: RoomStore): void => {
+  playerStore.broadcast(stringifyMessage(createUpdateRoomsResponse(roomStore)));
 };
 
 export const sendCreateGame = (player: Player, gameId: number, otherPlayedId: number): void => {

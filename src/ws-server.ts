@@ -30,8 +30,7 @@ const gameStore = new GameStore();
 const processMessage = (message: ClientMessage, ws: WebSocketWithId): void => {
   switch (message.type) {
     case MessageType.Registration: {
-      const response = handleRegistration(message, ws, playerStore);
-      ws.send(stringifyMessage(response));
+      handleRegistration(message, ws, playerStore, roomStore);
       break;
     }
 
