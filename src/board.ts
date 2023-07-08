@@ -55,6 +55,8 @@ export class Board {
           return { status: AttackStatus.Miss, position, adjacent: null };
         }
 
+        adjacentToShipPositions.forEach((position) => this.setPosition(position, PositionType.Shot));
+
         return { status: AttackStatus.Killed, position, adjacent: adjacentToShipPositions };
       } else {
         this.shipsHealth.set(positionValue, shipHealth - 1);
