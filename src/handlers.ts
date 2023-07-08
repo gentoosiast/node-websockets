@@ -59,7 +59,11 @@ export const handleRegistration = (
   const existingPlayer = playerStore.get(playerDto.name);
 
   if (!existingPlayer) {
-    return getRegistrationSuccessResponse(playerStore.add(playerDto, socket));
+    const player = playerStore.add(playerDto, socket);
+    console.log(
+      `Registration.successful. name: ${player.name}, id: ${player.getId()}, socketId: ${player.getSocketId()}`
+    );
+    return getRegistrationSuccessResponse(player);
   }
 
   if (existingPlayer.checkPassword(playerDto.password)) {
@@ -202,22 +206,15 @@ export const createAttackResponse = (position: Position, playerId: number, statu
   };
 };
 
-export const handleRandomAttack = (message: ClientMessage, gameStore: GameStore): void => {
-  if (!isRandomAttackRequest(message)) {
-    console.error(`Random attack: invalid message format`);
-    return;
-  }
-
-  const { gameId, indexPlayer: playerId } = message.data;
-
+const attack = (gameStore: GameStore, gameId: number, playerId: number, position: Position | null): void => {
   const game = gameStore.get(gameId);
 
   if (!game) {
-    console.error(`Random attack: game with id ${gameId} not found`);
+    console.error(`Attack: game with id ${gameId} not found`);
     return;
   }
 
-  const shootResult = game.performRandomAttack(playerId);
+  const shootResult = position ? game.attack(playerId, position) : game.performRandomAttack(playerId);
   game.broadcast(stringifyMessage(createAttackResponse(shootResult.position, playerId, shootResult.status)));
   if (shootResult.status === AttackStatus.Killed) {
     shootResult.adjacent.forEach((position) => {
@@ -227,6 +224,17 @@ export const handleRandomAttack = (message: ClientMessage, gameStore: GameStore)
   game.broadcast(stringifyMessage(createTurnResponse(game.getCurrentPlayerId())));
 };
 
+export const handleRandomAttack = (message: ClientMessage, gameStore: GameStore): void => {
+  if (!isRandomAttackRequest(message)) {
+    console.error(`Random attack: invalid message format`);
+    return;
+  }
+
+  const { gameId, indexPlayer: playerId } = message.data;
+
+  attack(gameStore, gameId, playerId, null);
+};
+
 export const handleAttack = (message: ClientMessage, gameStore: GameStore): void => {
   if (!isAttackRequest(message)) {
     console.error(`Attack: invalid message format`);
@@ -234,20 +242,5 @@ export const handleAttack = (message: ClientMessage, gameStore: GameStore): void
   }
 
   const { gameId, indexPlayer: playerId, x, y } = message.data;
-
-  const game = gameStore.get(gameId);
-
-  if (!game) {
-    console.error(`Attack: game with id ${gameId} not found`);
-    return;
-  }
-
-  const shootResult = game.attack(playerId, { x, y });
-  game.broadcast(stringifyMessage(createAttackResponse(shootResult.position, playerId, shootResult.status)));
-  if (shootResult.status === AttackStatus.Killed) {
-    shootResult.adjacent.forEach((position) => {
-      game.broadcast(stringifyMessage(createAttackResponse(position, playerId, AttackStatus.Miss)));
-    });
-  }
-  game.broadcast(stringifyMessage(createTurnResponse(game.getCurrentPlayerId())));
+  attack(gameStore, gameId, playerId, { x, y });
 };
