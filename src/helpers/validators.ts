@@ -162,19 +162,6 @@ export const isAddShipsRequest = (value: unknown): value is AddShipsRequest => {
   return false;
 };
 
-/*
-export interface AttackRequest {
-  type: MessageType.Attack;
-  data: {
-    gameId: number;
-    x: number;
-    y: number;
-    indexPlayer: number;
-  }
-  id: 0;
-}
-*/
-
 export const isAttackRequest = (value: unknown): value is AttackRequest => {
   if (
     value &&
