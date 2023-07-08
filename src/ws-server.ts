@@ -79,7 +79,7 @@ wss.on('connection', (ws: WebSocketWithId) => {
   console.log(`Client ${ws.id} connected`);
   ws.on('message', async (data) => {
     const unparsedMessage = data.toString();
-    console.log(`Got message from client: ${unparsedMessage}`);
+    console.log(`Got message from client ${ws.id}: ${unparsedMessage}`);
     try {
       const message = await parseMessage(unparsedMessage);
       processMessage(message, ws);
