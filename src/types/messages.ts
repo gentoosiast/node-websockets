@@ -1,5 +1,7 @@
 import { Room } from '../room.js';
+import { Position } from './board.js';
 import { PlayerRegisterDto } from './player.js';
+import { Ship } from './ship.js';
 
 export enum MessageType {
   Registration = 'reg',
@@ -7,6 +9,10 @@ export enum MessageType {
   AddUserToRoom = 'add_user_to_room',
   CreateGame = 'create_game',
   UpdateRoom = 'update_room',
+  AddShips = 'add_ships',
+  StartGame = 'start_game',
+  Attack = 'attack',
+  Turn = 'turn',
 }
 
 export interface ClientMessage {
@@ -62,13 +68,62 @@ export interface CreateGameResponse {
   id: 0;
 }
 
-export interface RoomDto {
-  roomId: number;
-  roomUsers: Omit<PlayerRegisterDto, 'password'>[];
-}
-
 export interface UpdateRoomResponse {
   type: MessageType.UpdateRoom;
   data: Room[];
+  id: 0;
+}
+
+export interface AddShipsRequest {
+  type: MessageType.AddShips;
+  data: {
+    gameId: number;
+    ships: Ship[];
+    indexPlayer: number;
+  };
+  id: 0;
+}
+
+export interface StartGameResponse {
+  type: MessageType.StartGame;
+  data: {
+    ships: Ship[];
+    currentPlayerIndex: number;
+  };
+  id: 0;
+}
+
+export interface AttackRequest {
+  type: MessageType.Attack;
+  data: {
+    gameId: number;
+    x: number;
+    y: number;
+    indexPlayer: number;
+  };
+  id: 0;
+}
+
+export enum AttackStatus {
+  Miss = 'miss',
+  Killed = 'killed',
+  Shot = 'shot',
+}
+
+export interface AttackResponse {
+  type: MessageType.Attack;
+  data: {
+    position: Position;
+    currentPlayer: number;
+    status: AttackStatus;
+  };
+  id: 0;
+}
+
+export interface TurnResponse {
+  type: MessageType.Turn;
+  data: {
+    currentPlayer: number;
+  };
   id: 0;
 }

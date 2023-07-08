@@ -5,7 +5,8 @@ import { isAddUserToRoomRequest } from './helpers/validators.js';
 import { GameStore } from './store/game-store.js';
 import { PlayerStore } from './store/player-store.js';
 import { RoomStore } from './store/room-store.js';
-import { ClientMessage, CreateGameResponse, MessageType, RoomDto, UpdateRoomResponse } from './types/messages.js';
+import { ClientMessage, CreateGameResponse, MessageType, UpdateRoomResponse } from './types/messages.js';
+import { RoomDto } from './types/room.js';
 import { WebSocketWithId } from './types/websocket.js';
 
 export class Room {
@@ -91,10 +92,14 @@ export const handleAddPlayerToRoom = (
   }
 
   const otherPlayer = room.getPlayers()[0];
-  room.addPlayer(player);
 
-  const game = gameStore.add(room);
+  const game = gameStore.add(otherPlayer);
+  const gameId = game.getId();
+  otherPlayer.setGameId(gameId);
+  player.setGameId(gameId);
+  game.addPlayer(player);
   roomStore.delete(roomId);
+
   sendCreateGame(player, game.getId(), otherPlayer.getId());
   sendCreateGame(otherPlayer, game.getId(), player.getId());
   broadcastUpdateRooms(playerStore, roomStore);

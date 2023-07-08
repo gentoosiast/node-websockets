@@ -1,14 +1,15 @@
 import { Game } from '../game.js';
-import { Room } from '../room.js';
+import { Player } from '../player.js';
 
 export class GameStore {
   private index = 0;
   private games: Map<number, Game> = new Map();
 
-  add(room: Room): Game {
+  add(player: Player): Game {
     const gameId = this.index;
 
-    const game = new Game(gameId, room);
+    const game = new Game(gameId);
+    game.addPlayer(player);
     this.games.set(gameId, game);
     this.index++;
 
