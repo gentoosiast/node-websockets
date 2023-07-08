@@ -1,6 +1,6 @@
 import { Room } from '../room.js';
 import { Position } from './board.js';
-import { PlayerRegisterDto } from './player.js';
+import { PlayerRegisterDto, Winner } from './player.js';
 import { Ship } from './ship.js';
 
 export enum MessageType {
@@ -14,6 +14,8 @@ export enum MessageType {
   Attack = 'attack',
   Turn = 'turn',
   RandomAttack = 'randomAttack',
+  UpdateWinners = 'update_winners',
+  FinishGame = 'finish',
 }
 
 export interface ClientMessage {
@@ -134,6 +136,20 @@ export interface RandomAttackRequest {
   data: {
     gameId: number;
     indexPlayer: number;
+  };
+  id: 0;
+}
+
+export interface UpdateWinnersResponse {
+  type: MessageType.UpdateWinners;
+  data: Winner[];
+  id: 0;
+}
+
+export interface FinishGameResponse {
+  type: MessageType.FinishGame;
+  data: {
+    winPlayer: number;
   };
   id: 0;
 }

@@ -7,3 +7,8 @@ export interface PlayerDto {
   name: string;
   index: number;
 }
+
+export interface Winner {
+  name: string;
+  wins: number;
+}
