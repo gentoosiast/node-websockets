@@ -165,8 +165,8 @@ export const handleAddPlayerToRoom = (
   game.addPlayer(player);
   roomStore.delete(roomId);
 
-  sendCreateGame(player, game.getId(), otherPlayer.getId());
-  sendCreateGame(otherPlayer, game.getId(), player.getId());
+  sendCreateGame(player, game.getId(), player.getId());
+  sendCreateGame(otherPlayer, game.getId(), otherPlayer.getId());
   broadcastUpdateRooms(playerStore, roomStore);
 
   return game;
