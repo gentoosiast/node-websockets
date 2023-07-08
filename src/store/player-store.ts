@@ -3,7 +3,7 @@ import { PlayerRegisterDto } from '../types/player.js';
 import { WebSocketWithId } from '../types/websocket.js';
 
 export class PlayerStore {
-  private players: Map<string, Player> = new Map();
+  private players: Map<string, Player> = new Map(); // name, Player
   private id = 0;
 
   add(playerDto: PlayerRegisterDto, socket: WebSocketWithId): Player {
@@ -21,14 +21,28 @@ export class PlayerStore {
     return this.players.delete(name);
   }
 
-  getBySocket(socket: WebSocketWithId): Player | null {
+  deleteBySocketId(socketId: string): boolean {
+    const player = this.getBySocketId(socketId);
+
+    if (!player) {
+      return false;
+    }
+
+    return this.delete(player.getName());
+  }
+
+  getBySocketId(socketId: string): Player | null {
     for (const player of this.players.values()) {
-      if (player.getSocketId() === socket.id) {
+      if (player.getSocketId() === socketId) {
         return player;
       }
     }
 
     return null;
+  }
+
+  getBySocket(socket: WebSocketWithId): Player | null {
+    return this.getBySocketId(socket.id);
   }
 
   getAll(): Player[] {

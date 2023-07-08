@@ -17,6 +17,10 @@ export class RoomStore {
     return this.rooms;
   }
 
+  findRoomByPlayerId(playerId: number): Room | null {
+    return this.rooms.find((room) => room.getPlayers().some((player) => player.getId() === playerId)) ?? null;
+  }
+
   delete(roomId: number): void {
     this.rooms = this.rooms.filter((room) => room.id !== roomId);
   }

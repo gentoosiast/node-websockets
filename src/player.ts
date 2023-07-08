@@ -22,6 +22,10 @@ export class Player {
     return this.socket.id;
   }
 
+  updateSocket(socket: WebSocketWithId): void {
+    this.socket = socket;
+  }
+
   getGameId(): number | null {
     return this.gameId;
   }

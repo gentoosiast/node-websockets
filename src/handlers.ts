@@ -50,6 +50,42 @@ const getRegistrationSuccessResponse = (player: Player): RegistrationSuccessResp
   id: 0,
 });
 
+export const handlePlayerDisconnect = (
+  socketId: string,
+  roomStore: RoomStore,
+  playerStore: PlayerStore,
+  gameStore: GameStore
+): void => {
+  const player = playerStore.getBySocketId(socketId);
+  if (!player) {
+    return;
+  }
+
+  const room = roomStore.findRoomByPlayerId(player.getId());
+  if (room) {
+    roomStore.delete(room.getId());
+    broadcastUpdateRooms(playerStore, roomStore);
+  }
+
+  const gameId = player.getGameId();
+  player.setGameId(null);
+  if (gameId === null) {
+    return;
+  }
+
+  const game = gameStore.get(gameId);
+  if (!game) {
+    return;
+  }
+
+  const opponent = game.getPlayers().find((p) => p.getId() !== player.getId());
+  if (opponent) {
+    highScores.addWinner(opponent.getName());
+    playerStore.broadcast(stringifyMessage(createUpdateWinnersResponse(highScores.getTopTenPlayers())));
+    opponent.send(stringifyMessage(createFinishGameResponse(opponent.getId())));
+  }
+};
+
 export const handleRegistration = (
   message: ClientMessage,
   socket: WebSocketWithId,
@@ -76,6 +112,7 @@ export const handleRegistration = (
   }
 
   if (existingPlayer.checkPassword(playerDto.password)) {
+    existingPlayer.updateSocket(socket);
     socket.send(stringifyMessage(getRegistrationSuccessResponse(existingPlayer)));
     socket.send(stringifyMessage(createUpdateRoomsResponse(roomStore)));
     socket.send(stringifyMessage(createUpdateWinnersResponse(highScores.getTopTenPlayers())));

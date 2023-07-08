@@ -6,6 +6,7 @@ import {
   handleAddShips,
   handleAttack,
   handleRandomAttack,
+  handlePlayerDisconnect,
 } from './handlers.js';
 import { GameStore } from './store/game-store.js';
 import { PlayerStore } from './store/player-store.js';
@@ -65,6 +66,7 @@ const processMessage = (message: ClientMessage, ws: WebSocketWithId): void => {
 
 const handleLostConnection = (ws: WebSocketWithId): void => {
   console.log(`Lost connection with client ${ws.id}`);
+  handlePlayerDisconnect(ws.id, roomStore, playerStore, gameStore);
 };
 
 wss.on('listening', () => {
