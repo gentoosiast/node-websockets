@@ -71,12 +71,14 @@ export const handleRegistration = (
     );
     socket.send(stringifyMessage(getRegistrationSuccessResponse(player)));
     socket.send(stringifyMessage(createUpdateRoomsResponse(roomStore)));
+    socket.send(stringifyMessage(createUpdateWinnersResponse(highScores.getTopTenPlayers())));
     return;
   }
 
   if (existingPlayer.checkPassword(playerDto.password)) {
     socket.send(stringifyMessage(getRegistrationSuccessResponse(existingPlayer)));
     socket.send(stringifyMessage(createUpdateRoomsResponse(roomStore)));
+    socket.send(stringifyMessage(createUpdateWinnersResponse(highScores.getTopTenPlayers())));
     return;
   }
 
