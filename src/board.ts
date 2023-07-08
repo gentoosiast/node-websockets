@@ -140,8 +140,8 @@ export class Board {
     }
 
     for (let i = -1; i <= ship.length; i++) {
-      const top = { x: ship.position.x, y: ship.position.y - 1 };
-      const bottom = { x: ship.position.x, y: ship.position.y + 1 };
+      const top = { x: ship.position.x + i, y: ship.position.y - 1 };
+      const bottom = { x: ship.position.x + i, y: ship.position.y + 1 };
 
       if (this.isInsideBounds(top)) {
         adjacentPositions.push(top);
@@ -161,7 +161,7 @@ export class Board {
     const middleBottom = { x: ship.position.x, y: ship.position.y + ship.length };
 
     if (this.isInsideBounds(middleTop)) {
-      adjacentPositions.push(middleBottom);
+      adjacentPositions.push(middleTop);
     }
 
     if (this.isInsideBounds(middleBottom)) {
@@ -169,8 +169,8 @@ export class Board {
     }
 
     for (let i = -1; i <= ship.length; i++) {
-      const left = { x: ship.position.x - 1, y: ship.position.y };
-      const right = { x: ship.position.x + 1, y: ship.position.y };
+      const left = { x: ship.position.x - 1, y: ship.position.y + i };
+      const right = { x: ship.position.x + 1, y: ship.position.y + i };
 
       if (this.isInsideBounds(left)) {
         adjacentPositions.push(left);
