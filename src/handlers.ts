@@ -203,8 +203,8 @@ export const handleAddShips = (message: ClientMessage, ws: WebSocketWithId, game
     players.forEach((player) => {
       const playerShips = game.getShipsForPlayerId(player.getId());
       player.send(stringifyMessage(createGameStartResponse(player.getId(), playerShips)));
-      game.broadcast(stringifyMessage(createTurnResponse(game.getCurrentPlayerId())));
     });
+    game.broadcast(stringifyMessage(createTurnResponse(game.getCurrentPlayerId())));
   }
 };
 
