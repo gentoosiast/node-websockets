@@ -1,4 +1,5 @@
 import { EOL } from 'node:os';
+import { getRandomNumber } from './helpers/random.js';
 import { Position, ShootResult } from './types/board.js';
 import { AttackStatus } from './types/messages.js';
 import { Ship, ShipDirection } from './types/ship.js';
@@ -33,7 +34,7 @@ export class Board {
     this.setPosition(position, PositionType.Shot);
 
     if (positionValue === PositionType.Empty) {
-      return { status: AttackStatus.Miss, positions: null };
+      return { status: AttackStatus.Miss, position, adjacent: null };
     }
 
     if (positionValue >= 0) {
@@ -41,7 +42,7 @@ export class Board {
 
       if (!shipHealth) {
         console.error(`Can't get ship health, ship with index ${positionValue} not found`);
-        return { status: AttackStatus.Miss, positions: null };
+        return { status: AttackStatus.Miss, position, adjacent: null };
       }
 
       if (shipHealth === 1) {
@@ -51,17 +52,29 @@ export class Board {
 
         if (!adjacentToShipPositions) {
           console.error(`Can't get adjacent positions, ship with index ${positionValue} not found`);
-          return { status: AttackStatus.Miss, positions: null };
+          return { status: AttackStatus.Miss, position, adjacent: null };
         }
 
-        return { status: AttackStatus.Killed, positions: adjacentToShipPositions };
+        return { status: AttackStatus.Killed, position, adjacent: adjacentToShipPositions };
       } else {
         this.shipsHealth.set(positionValue, shipHealth - 1);
-        return { status: AttackStatus.Shot, positions: null };
+        return { status: AttackStatus.Shot, position, adjacent: null };
       }
     }
 
-    return { status: AttackStatus.Shot, positions: null }; // shooting on position which already has been shot
+    return { status: AttackStatus.Shot, position, adjacent: null }; // shooting on position which already has been shot
+  }
+
+  shootAtRandomPosition(): ShootResult {
+    let x = -1;
+    let y = -1;
+
+    do {
+      x = getRandomNumber(0, BOARD_SIZE - 1);
+      y = getRandomNumber(0, BOARD_SIZE - 1);
+    } while (this.getPosition({ x, y }) === PositionType.Shot);
+
+    return this.shoot({ x, y });
   }
 
   getNumberOfRemainingShips(): number {

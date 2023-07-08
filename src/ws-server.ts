@@ -1,7 +1,7 @@
 import { WebSocketServer } from 'ws';
 import { handleRegistration } from './registration.js';
 import { broadcastUpdateRooms, handleAddPlayerToRoom, handleCreateRoom } from './room.js';
-import { handleAddShips } from './ships.js';
+import { handleAddShips, handleAttack, handleRandomAttack } from './ships.js';
 import { GameStore } from './store/game-store.js';
 import { PlayerStore } from './store/player-store.js';
 import { RoomStore } from './store/room-store.js';
@@ -42,6 +42,16 @@ const processMessage = (message: ClientMessage, ws: WebSocketWithId): void => {
 
     case MessageType.AddShips: {
       handleAddShips(message, ws, gameStore);
+      break;
+    }
+
+    case MessageType.Attack: {
+      handleAttack(message, gameStore);
+      break;
+    }
+
+    case MessageType.RandomAttack: {
+      handleRandomAttack(message, gameStore);
       break;
     }
 

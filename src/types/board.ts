@@ -6,6 +6,6 @@ export interface Position {
 }
 
 export type ShootResult =
-  | { status: AttackStatus.Miss; positions: null }
-  | { status: AttackStatus.Shot; positions: null }
-  | { status: AttackStatus.Killed; positions: Position[] };
+  | { status: AttackStatus.Miss; position: Position; adjacent: null }
+  | { status: AttackStatus.Shot; position: Position; adjacent: null }
+  | { status: AttackStatus.Killed; position: Position; adjacent: Position[] };

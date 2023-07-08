@@ -13,6 +13,7 @@ export enum MessageType {
   StartGame = 'start_game',
   Attack = 'attack',
   Turn = 'turn',
+  RandomAttack = 'randomAttack',
 }
 
 export interface ClientMessage {
@@ -124,6 +125,15 @@ export interface TurnResponse {
   type: MessageType.Turn;
   data: {
     currentPlayer: number;
+  };
+  id: 0;
+}
+
+export interface RandomAttackRequest {
+  type: MessageType.RandomAttack;
+  data: {
+    gameId: number;
+    indexPlayer: number;
   };
   id: 0;
 }

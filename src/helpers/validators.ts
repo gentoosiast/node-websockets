@@ -7,6 +7,7 @@ import {
   AddUserToRoomRequest,
   AddShipsRequest,
   AttackRequest,
+  RandomAttackRequest,
 } from '../types/messages.js';
 import { PlayerRegisterDto } from '../types/player.js';
 import { Ship, ShipSize } from '../types/ship.js';
@@ -189,6 +190,28 @@ export const isAttackRequest = (value: unknown): value is AttackRequest => {
     typeof value.data.x === 'number' &&
     'y' in value.data &&
     typeof value.data.y === 'number' &&
+    'indexPlayer' in value.data &&
+    typeof value.data.indexPlayer === 'number' &&
+    'id' in value &&
+    value.id === 0
+  ) {
+    return true;
+  }
+
+  return false;
+};
+
+export const isRandomAttackRequest = (value: unknown): value is RandomAttackRequest => {
+  if (
+    value &&
+    typeof value === 'object' &&
+    'type' in value &&
+    value.type === MessageType.RandomAttack &&
+    'data' in value &&
+    value.data &&
+    typeof value.data === 'object' &&
+    'gameId' in value.data &&
+    typeof value.data.gameId === 'number' &&
     'indexPlayer' in value.data &&
     typeof value.data.indexPlayer === 'number' &&
     'id' in value &&
