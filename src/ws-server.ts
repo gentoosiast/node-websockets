@@ -1,7 +1,6 @@
 import { WebSocketServer } from 'ws';
 import {
   handleRegistration,
-  broadcastUpdateRooms,
   handleAddPlayerToRoom,
   handleCreateRoom,
   handleAddShips,
@@ -13,7 +12,6 @@ import { PlayerStore } from './store/player-store.js';
 import { RoomStore } from './store/room-store.js';
 import { generateUUID } from './helpers/uuid.js';
 import { parseMessage } from './helpers/parse-message.js';
-import { stringifyMessage } from './helpers/stringify-message.js';
 import { ClientMessage, MessageType } from './types/messages.js';
 import { WebSocketWithId } from './types/websocket.js';
 import { WS_HOSTNAME, WS_HTTP_PORT } from './constants/index.js';
@@ -36,7 +34,6 @@ const processMessage = (message: ClientMessage, ws: WebSocketWithId): void => {
 
     case MessageType.CreateRoom: {
       handleCreateRoom(ws, roomStore, playerStore);
-      broadcastUpdateRooms(playerStore, roomStore);
       break;
     }
 
@@ -61,7 +58,7 @@ const processMessage = (message: ClientMessage, ws: WebSocketWithId): void => {
     }
 
     default: {
-      throw new Error('Unknown message type');
+      throw new Error(`Unsupported message type: ${message.type}`);
     }
   }
 };

@@ -102,7 +102,7 @@ const createUpdateRoomsResponse = (roomStore: RoomStore): UpdateRoomResponse => 
   };
 };
 
-export const broadcastUpdateRooms = (playerStore: PlayerStore, roomStore: RoomStore): void => {
+const broadcastUpdateRooms = (playerStore: PlayerStore, roomStore: RoomStore): void => {
   playerStore.broadcast(stringifyMessage(createUpdateRoomsResponse(roomStore)));
 };
 
@@ -127,6 +127,7 @@ export const handleCreateRoom = (socket: WebSocketWithId, roomStore: RoomStore, 
   }
 
   roomStore.add([player]);
+  broadcastUpdateRooms(playerStore, roomStore);
 };
 
 export const handleAddPlayerToRoom = (
