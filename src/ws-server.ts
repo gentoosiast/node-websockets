@@ -80,6 +80,7 @@ wss.on('connection', (ws: WebSocketWithId) => {
   ws.on('error', console.error);
   ws.on('close', () => handleLostConnection(ws));
 
+  console.log(`Client ${ws.id} connected`);
   ws.on('message', async (data) => {
     const unparsedMessage = data.toString();
     console.log(`Got message from client: ${unparsedMessage}`);
