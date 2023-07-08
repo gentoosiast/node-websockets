@@ -1,7 +1,13 @@
 import { WebSocketServer } from 'ws';
-import { handleRegistration } from './registration.js';
-import { broadcastUpdateRooms, handleAddPlayerToRoom, handleCreateRoom } from './room.js';
-import { handleAddShips, handleAttack, handleRandomAttack } from './ships.js';
+import {
+  handleRegistration,
+  broadcastUpdateRooms,
+  handleAddPlayerToRoom,
+  handleCreateRoom,
+  handleAddShips,
+  handleAttack,
+  handleRandomAttack,
+} from './handlers.js';
 import { GameStore } from './store/game-store.js';
 import { PlayerStore } from './store/player-store.js';
 import { RoomStore } from './store/room-store.js';

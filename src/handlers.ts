@@ -1,7 +1,15 @@
-import { Game } from './game.js';
+import { Player } from './player.js';
 import { stringifyMessage } from './helpers/stringify-message.js';
-import { isAddShipsRequest, isAttackRequest, isRandomAttackRequest } from './helpers/validators.js';
+import {
+  isRegistrationRequest,
+  isAddShipsRequest,
+  isAttackRequest,
+  isRandomAttackRequest,
+  isAddUserToRoomRequest,
+} from './helpers/validators.js';
+import { PlayerStore } from './store/player-store.js';
 import { GameStore } from './store/game-store.js';
+import { RoomStore } from './store/room-store.js';
 import { Position } from './types/board.js';
 import {
   AttackResponse,
@@ -10,9 +18,56 @@ import {
   MessageType,
   StartGameResponse,
   TurnResponse,
+  RegistrationFailureResponse,
+  RegistrationSuccessResponse,
+  UpdateRoomResponse,
+  CreateGameResponse,
 } from './types/messages.js';
 import { Ship } from './types/ship.js';
 import { WebSocketWithId } from './types/websocket.js';
+import { Game } from './game.js';
+
+const getRegistrationErrorResponse = (errorText: string): RegistrationFailureResponse => ({
+  type: MessageType.Registration,
+  data: {
+    error: true,
+    errorText,
+  },
+  id: 0,
+});
+
+const getRegistrationSuccessResponse = (player: Player): RegistrationSuccessResponse => ({
+  type: MessageType.Registration,
+  data: {
+    name: player.getName(),
+    index: player.getId(),
+    error: false,
+  },
+  id: 0,
+});
+
+export const handleRegistration = (
+  message: ClientMessage,
+  socket: WebSocketWithId,
+  playerStore: PlayerStore
+): RegistrationFailureResponse | RegistrationSuccessResponse => {
+  if (!isRegistrationRequest(message)) {
+    return getRegistrationErrorResponse('Registration request message have invalid format');
+  }
+
+  const playerDto = message.data;
+  const existingPlayer = playerStore.get(playerDto.name);
+
+  if (!existingPlayer) {
+    return getRegistrationSuccessResponse(playerStore.add(playerDto, socket));
+  }
+
+  if (existingPlayer.checkPassword(playerDto.password)) {
+    return getRegistrationSuccessResponse(existingPlayer);
+  }
+
+  return getRegistrationErrorResponse('Invalid password');
+};
 
 export const createGameStartResponse = (playerId: number, playerShips: Ship[]): StartGameResponse => {
   return {
@@ -23,6 +78,80 @@ export const createGameStartResponse = (playerId: number, playerShips: Ship[]): 
     },
     id: 0,
   };
+};
+
+export const broadcastUpdateRooms = (playerStore: PlayerStore, roomStore: RoomStore): void => {
+  const message: UpdateRoomResponse = {
+    type: MessageType.UpdateRoom,
+    data: roomStore.getAll(),
+    id: 0,
+  };
+
+  console.log(`broadcast message: ${JSON.stringify(message)}`);
+  playerStore.broadcast(stringifyMessage(message));
+};
+
+export const sendCreateGame = (player: Player, gameId: number, otherPlayedId: number): void => {
+  const message: CreateGameResponse = {
+    type: MessageType.CreateGame,
+    data: {
+      idGame: gameId,
+      idPlayer: otherPlayedId,
+    },
+    id: 0,
+  };
+
+  player.send(stringifyMessage(message));
+};
+
+export const handleCreateRoom = (socket: WebSocketWithId, roomStore: RoomStore, playerStore: PlayerStore): void => {
+  const player = playerStore.getBySocket(socket);
+
+  if (!player) {
+    throw new Error('Player not found');
+  }
+
+  roomStore.add([player]);
+};
+
+export const handleAddPlayerToRoom = (
+  message: ClientMessage,
+  ws: WebSocketWithId,
+  playerStore: PlayerStore,
+  roomStore: RoomStore,
+  gameStore: GameStore
+): Game => {
+  if (!isAddUserToRoomRequest(message)) {
+    throw new Error('Message have invalid format');
+  }
+
+  const roomId = message.data.indexRoom;
+  const player = playerStore.getBySocket(ws);
+
+  if (!player) {
+    throw new Error('Player not found');
+  }
+
+  const room = roomStore.get(roomId);
+
+  if (!room) {
+    throw new Error('Room not found');
+  }
+
+  const otherPlayer = room.getPlayers()[0];
+
+  const game = gameStore.add(otherPlayer);
+  const gameId = game.getId();
+  otherPlayer.setGameId(gameId);
+  player.setGameId(gameId);
+  game.addPlayer(player);
+  roomStore.delete(roomId);
+
+  sendCreateGame(player, game.getId(), otherPlayer.getId());
+  sendCreateGame(otherPlayer, game.getId(), player.getId());
+  broadcastUpdateRooms(playerStore, roomStore);
+
+  return game;
 };
 
 export const createTurnResponse = (playerId: number): TurnResponse => {
