@@ -64,11 +64,6 @@ const processMessage = (message: ClientMessage, ws: WebSocketWithId): void => {
   }
 };
 
-const handleLostConnection = (ws: WebSocketWithId): void => {
-  console.log(`Lost connection with client ${ws.id}`);
-  handlePlayerDisconnect(ws.id, roomStore, playerStore, gameStore);
-};
-
 wss.on('listening', () => {
   console.log(`Starting websocket server on ws://${WS_HOSTNAME}:${WS_HTTP_PORT}`);
 });
@@ -76,7 +71,7 @@ wss.on('listening', () => {
 wss.on('connection', (ws: WebSocketWithId) => {
   ws.id = generateUUID();
   ws.on('error', console.error);
-  ws.on('close', () => handleLostConnection(ws));
+  ws.on('close', () => handlePlayerDisconnect(ws.id, roomStore, playerStore, gameStore));
 
   console.log(`Client ${ws.id} connected`);
   ws.on('message', async (data) => {

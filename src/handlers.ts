@@ -56,6 +56,7 @@ export const handlePlayerDisconnect = (
   playerStore: PlayerStore,
   gameStore: GameStore
 ): void => {
+  console.log(`Lost connection with client ${socketId}`);
   const player = playerStore.getBySocketId(socketId);
   if (!player) {
     return;
