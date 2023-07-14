@@ -94,7 +94,9 @@ export const handleRegistration = (
   roomStore: RoomStore
 ): void => {
   if (!isRegistrationRequest(message)) {
-    socket.send(stringifyMessage(getRegistrationErrorResponse('Registration request message have invalid format')));
+    socket.send(
+      stringifyMessage(getRegistrationErrorResponse('reg: Registration request message have invalid format'))
+    );
     return;
   }
 
@@ -102,7 +104,11 @@ export const handleRegistration = (
   const existingPlayer = playerStore.get(playerDto.name);
 
   if (existingPlayer && !existingPlayer.checkPassword(playerDto.password)) {
-    socket.send(stringifyMessage(getRegistrationErrorResponse('Invalid password')));
+    socket.send(
+      stringifyMessage(
+        getRegistrationErrorResponse(`reg: User ${playerDto.name} already exists and provided password is incorrect`)
+      )
+    );
     return;
   }
 
@@ -111,9 +117,7 @@ export const handleRegistration = (
     socket.send(stringifyMessage(getRegistrationSuccessResponse(existingPlayer)));
   } else {
     const player = playerStore.add(playerDto, socket);
-    console.log(
-      `Registration.successful. name: ${player.name}, id: ${player.getId()}, socketId: ${player.getSocketId()}`
-    );
+    console.log(`reg: Player ${playerDto.name} is successfully registered`);
     socket.send(stringifyMessage(getRegistrationSuccessResponse(player)));
   }
 
