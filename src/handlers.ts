@@ -176,7 +176,7 @@ export const handleCreateRoom = (socketId: string, roomStore: RoomStore, playerS
 
 export const handleAddPlayerToRoom = (
   message: ClientMessage,
-  socket: WebSocketWithId,
+  socketId: string,
   playerStore: PlayerStore,
   roomStore: RoomStore,
   gameStore: GameStore
@@ -186,7 +186,7 @@ export const handleAddPlayerToRoom = (
   }
 
   const roomId = message.data.indexRoom;
-  const player = playerStore.getBySocketId(socket.id);
+  const player = playerStore.getBySocketId(socketId);
 
   if (!player) {
     throw new Error('Player not found');

@@ -39,7 +39,7 @@ const processMessage = (message: ClientMessage, ws: WebSocketWithId): void => {
     }
 
     case MessageType.AddUserToRoom: {
-      handleAddPlayerToRoom(message, ws, playerStore, roomStore, gameStore);
+      handleAddPlayerToRoom(message, ws.id, playerStore, roomStore, gameStore);
       break;
     }
 
