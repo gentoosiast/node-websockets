@@ -2,26 +2,35 @@ import { Player } from '../player.js';
 import { Room } from '../room.js';
 
 export class RoomStore {
-  private rooms: Room[] = [];
+  private playerMap: Map<number, number> = new Map(); // playerId, roomId
+  private rooms: Map<number, Room> = new Map(); // roomId, Room
   private id = 0;
 
   add(players: Player[]): void {
-    this.rooms.push(new Room(this.id++, players));
+    const room = new Room(this.id++, players);
+    this.rooms.set(room.getId(), room);
   }
 
   get(roomId: number): Room | null {
-    return this.rooms.find((room) => room.id === roomId) ?? null;
+    return this.rooms.get(roomId) ?? null;
   }
 
   getAll(): Room[] {
-    return this.rooms;
+    return Array.from(this.rooms.values());
   }
 
-  findRoomByPlayerId(playerId: number): Room | null {
-    return this.rooms.find((room) => room.getPlayers().some((player) => player.getId() === playerId)) ?? null;
+  getRoomByPlayerId(playerId: number): Room | null {
+    const roomId = this.playerMap.get(playerId);
+
+    return roomId ? this.get(roomId) : null;
   }
 
   delete(roomId: number): void {
-    this.rooms = this.rooms.filter((room) => room.id !== roomId);
+    const room = this.get(roomId);
+    if (room) {
+      const players = room.getPlayers();
+      players.forEach((player) => this.playerMap.delete(player.getId()));
+      this.rooms.delete(roomId);
+    }
   }
 }

@@ -43,7 +43,7 @@ export const handlePlayerDisconnect = (
     return;
   }
 
-  const room = roomStore.findRoomByPlayerId(player.getId());
+  const room = roomStore.getRoomByPlayerId(player.getId());
   if (room) {
     roomStore.delete(room.getId());
     broadcastUpdateRooms(playerStore, roomStore);
