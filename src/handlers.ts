@@ -319,18 +319,17 @@ const attack = (
 
 export const handleRandomAttack = (message: ClientMessage, gameStore: GameStore, playerStore: PlayerStore): void => {
   if (!isRandomAttackRequest(message)) {
-    console.error(`Random attack: invalid message format`);
+    console.error(`randomAttack: Invalid message format`);
     return;
   }
 
   const { gameId, indexPlayer: playerId } = message.data;
-
   attack(gameStore, gameId, playerStore, playerId, null);
 };
 
 export const handleAttack = (message: ClientMessage, gameStore: GameStore, playerStore: PlayerStore): void => {
   if (!isAttackRequest(message)) {
-    console.error(`Attack: invalid message format`);
+    console.error(`attack: Invalid message format`);
     return;
   }
 
