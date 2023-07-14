@@ -161,7 +161,8 @@ export const handleCreateRoom = (socket: WebSocketWithId, roomStore: RoomStore, 
   const player = playerStore.getBySocketId(socket.id);
 
   if (!player) {
-    throw new Error('Player not found');
+    console.error(`create_room: Player not found, socketId: ${socket.id}`);
+    return;
   }
 
   roomStore.add([player]);
