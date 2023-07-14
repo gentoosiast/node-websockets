@@ -59,7 +59,7 @@ const processMessage = (message: ClientMessage, ws: WebSocketWithId): void => {
     }
 
     default: {
-      throw new Error(`Unsupported message type: ${message.type}`);
+      console.error(`Unsupported message type: ${message.type}`);
     }
   }
 };
