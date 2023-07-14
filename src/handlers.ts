@@ -170,6 +170,7 @@ export const handleCreateRoom = (socketId: string, roomStore: RoomStore, playerS
   }
 
   roomStore.add([player]);
+  console.log(`create_room: room for player ${player.getName()} is successfully created`);
   broadcastUpdateRooms(playerStore, roomStore);
 };
 
