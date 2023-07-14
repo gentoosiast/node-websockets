@@ -1,3 +1,4 @@
+import { socketSend } from './helpers/socket-send.js';
 import { PlayerDto } from './types/player.js';
 import { WebSocketWithId } from './types/websocket.js';
 
@@ -38,8 +39,8 @@ export class Player {
     return this.password === password;
   }
 
-  send(message: string): void {
-    this.socket.send(message);
+  send(message: unknown): void {
+    socketSend(this.socket, message);
   }
 
   toJSON(): PlayerDto {

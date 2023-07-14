@@ -1,5 +1,5 @@
 import { Player } from './player.js';
-import { stringifyMessage } from './helpers/stringify-message.js';
+import { socketSend } from './helpers/socket-send.js';
 import {
   isRegistrationRequest,
   isAddShipsRequest,
@@ -62,8 +62,8 @@ export const handlePlayerDisconnect = (
   const opponent = game.getPlayers().find((p) => p.getId() !== player.getId());
   if (opponent) {
     highScores.addWinner(opponent.getName());
-    playerStore.broadcast(stringifyMessage(createUpdateWinnersResponse(highScores.getTopWinners())));
-    opponent.send(stringifyMessage(createFinishGameResponse(opponent.getId())));
+    playerStore.broadcast(createUpdateWinnersResponse(highScores.getTopWinners()));
+    opponent.send(createFinishGameResponse(opponent.getId()));
   }
 };
 
@@ -93,9 +93,7 @@ export const handleRegistration = (
   roomStore: RoomStore
 ): void => {
   if (!isRegistrationRequest(message)) {
-    socket.send(
-      stringifyMessage(getRegistrationErrorResponse('reg: Registration request message have invalid format'))
-    );
+    socketSend(socket, getRegistrationErrorResponse('reg: Registration request message have invalid format'));
     return;
   }
 
@@ -103,25 +101,24 @@ export const handleRegistration = (
   const existingPlayer = playerStore.get(playerDto.name);
 
   if (existingPlayer && !existingPlayer.checkPassword(playerDto.password)) {
-    socket.send(
-      stringifyMessage(
-        getRegistrationErrorResponse(`reg: User ${playerDto.name} already exists and provided password is incorrect`)
-      )
+    socketSend(
+      socket,
+      getRegistrationErrorResponse(`reg: User ${playerDto.name} already exists and provided password is incorrect`)
     );
     return;
   }
 
   if (existingPlayer) {
     existingPlayer.updateSocket(socket);
-    socket.send(stringifyMessage(getRegistrationSuccessResponse(existingPlayer)));
+    existingPlayer.send(getRegistrationSuccessResponse(existingPlayer));
   } else {
     const player = playerStore.add(playerDto, socket);
     console.log(`reg: Player ${playerDto.name} is successfully registered`);
-    socket.send(stringifyMessage(getRegistrationSuccessResponse(player)));
+    player.send(getRegistrationSuccessResponse(player));
   }
 
-  socket.send(stringifyMessage(createUpdateRoomsResponse(roomStore)));
-  socket.send(stringifyMessage(createUpdateWinnersResponse(highScores.getTopWinners())));
+  socketSend(socket, createUpdateRoomsResponse(roomStore));
+  socketSend(socket, createUpdateWinnersResponse(highScores.getTopWinners()));
 };
 
 export const createGameStartResponse = (playerId: number, playerShips: Ship[]): StartGameResponse => {
@@ -144,7 +141,7 @@ const createUpdateRoomsResponse = (roomStore: RoomStore): UpdateRoomResponse => 
 };
 
 const broadcastUpdateRooms = (playerStore: PlayerStore, roomStore: RoomStore): void => {
-  playerStore.broadcast(stringifyMessage(createUpdateRoomsResponse(roomStore)));
+  playerStore.broadcast(createUpdateRoomsResponse(roomStore));
 };
 
 export const sendCreateGameResponse = (player: Player, gameId: number): void => {
@@ -157,7 +154,7 @@ export const sendCreateGameResponse = (player: Player, gameId: number): void => 
     id: 0,
   };
 
-  player.send(stringifyMessage(message));
+  player.send(message);
 };
 
 export const handleCreateRoom = (socketId: string, roomStore: RoomStore, playerStore: PlayerStore): void => {
@@ -244,9 +241,9 @@ export const handleAddShips = (message: ClientMessage, gameStore: GameStore): vo
     const players = game.getPlayers();
     players.forEach((player) => {
       const playerShips = game.getShipsForPlayerId(player.getId());
-      player.send(stringifyMessage(createGameStartResponse(player.getId(), playerShips)));
+      player.send(createGameStartResponse(player.getId(), playerShips));
     });
-    game.broadcast(stringifyMessage(createTurnResponse(game.getCurrentPlayerId())));
+    game.broadcast(createTurnResponse(game.getCurrentPlayerId()));
   }
 };
 
@@ -295,26 +292,26 @@ const attack = (
   }
 
   const shootResult = position ? game.attack(playerId, position) : game.performRandomAttack(playerId);
-  game.broadcast(stringifyMessage(createAttackResponse(shootResult.position, playerId, shootResult.status)));
+  game.broadcast(createAttackResponse(shootResult.position, playerId, shootResult.status));
   if (shootResult.status === AttackStatus.Killed) {
     shootResult.adjacent.forEach((position) => {
-      game.broadcast(stringifyMessage(createAttackResponse(position, playerId, AttackStatus.Miss)));
+      game.broadcast(createAttackResponse(position, playerId, AttackStatus.Miss));
     });
 
     if (game.isGameOver()) {
       game.getPlayers().forEach((player) => {
         if (playerId === player.getId()) {
           highScores.addWinner(player.getName());
-          playerStore.broadcast(stringifyMessage(createUpdateWinnersResponse(highScores.getTopWinners())));
+          playerStore.broadcast(createUpdateWinnersResponse(highScores.getTopWinners()));
         }
         player.setGameId(null);
       });
       gameStore.delete(gameId);
-      game.broadcast(stringifyMessage(createFinishGameResponse(playerId)));
+      game.broadcast(createFinishGameResponse(playerId));
       return;
     }
   }
-  game.broadcast(stringifyMessage(createTurnResponse(game.getCurrentPlayerId())));
+  game.broadcast(createTurnResponse(game.getCurrentPlayerId()));
 };
 
 export const handleRandomAttack = (message: ClientMessage, gameStore: GameStore, playerStore: PlayerStore): void => {

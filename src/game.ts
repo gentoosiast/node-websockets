@@ -150,7 +150,7 @@ export class Game {
     return Array.from(this.players.values()).map((playerData) => playerData.player);
   }
 
-  broadcast(message: string): void {
+  broadcast(message: unknown): void {
     this.players.forEach(({ player }) => player.send(message));
   }
 

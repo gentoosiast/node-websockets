@@ -45,7 +45,7 @@ export class PlayerStore {
     return [...this.players.values()];
   }
 
-  broadcast(message: string): void {
+  broadcast(message: unknown): void {
     this.getAll().forEach((player) => player.send(message));
   }
 }
