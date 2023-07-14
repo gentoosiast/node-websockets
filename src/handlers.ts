@@ -63,7 +63,7 @@ export const handlePlayerDisconnect = (
   const opponent = game.getPlayers().find((p) => p.getId() !== player.getId());
   if (opponent) {
     highScores.addWinner(opponent.getName());
-    playerStore.broadcast(stringifyMessage(createUpdateWinnersResponse(highScores.getTopTenPlayers())));
+    playerStore.broadcast(stringifyMessage(createUpdateWinnersResponse(highScores.getTopWinners())));
     opponent.send(stringifyMessage(createFinishGameResponse(opponent.getId())));
   }
 };
@@ -118,7 +118,7 @@ export const handleRegistration = (
   }
 
   socket.send(stringifyMessage(createUpdateRoomsResponse(roomStore)));
-  socket.send(stringifyMessage(createUpdateWinnersResponse(highScores.getTopTenPlayers())));
+  socket.send(stringifyMessage(createUpdateWinnersResponse(highScores.getTopWinners())));
 };
 
 export const createGameStartResponse = (playerId: number, playerShips: Ship[]): StartGameResponse => {
@@ -299,7 +299,7 @@ const attack = (
       game.getPlayers().forEach((player) => {
         if (playerId === player.getId()) {
           highScores.addWinner(player.getName());
-          playerStore.broadcast(stringifyMessage(createUpdateWinnersResponse(highScores.getTopTenPlayers())));
+          playerStore.broadcast(stringifyMessage(createUpdateWinnersResponse(highScores.getTopWinners())));
         }
         player.setGameId(null);
       });

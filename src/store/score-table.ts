@@ -11,7 +11,7 @@ class ScoreTable {
     this.table.set(playerName, playerWins + 1);
   }
 
-  getTopTenPlayers(): Winner[] {
+  getTopWinners(): Winner[] {
     return Array.from(this.table)
       .map(([name, wins]) => ({ name, wins }))
       .sort((winnerA, winnerB) => winnerB.wins - winnerA.wins)
