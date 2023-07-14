@@ -44,7 +44,7 @@ const processMessage = (message: ClientMessage, ws: WebSocketWithId): void => {
     }
 
     case MessageType.AddShips: {
-      handleAddShips(message, ws, gameStore);
+      handleAddShips(message, gameStore);
       break;
     }
 
