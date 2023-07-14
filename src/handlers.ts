@@ -148,7 +148,7 @@ const broadcastUpdateRooms = (playerStore: PlayerStore, roomStore: RoomStore): v
   playerStore.broadcast(stringifyMessage(createUpdateRoomsResponse(roomStore)));
 };
 
-export const sendCreateGame = (player: Player, gameId: number, otherPlayedId: number): void => {
+export const sendCreateGameResponse = (player: Player, gameId: number, otherPlayedId: number): void => {
   const message: CreateGameResponse = {
     type: MessageType.CreateGame,
     data: {
@@ -210,8 +210,8 @@ export const handleAddPlayerToRoom = (
   roomStore.delete(roomId);
 
   broadcastUpdateRooms(playerStore, roomStore);
-  sendCreateGame(player, gameId, player.getId());
-  sendCreateGame(otherPlayer, gameId, otherPlayer.getId());
+  sendCreateGameResponse(player, gameId, player.getId());
+  sendCreateGameResponse(otherPlayer, gameId, otherPlayer.getId());
 };
 
 export const createTurnResponse = (playerId: number): TurnResponse => {
