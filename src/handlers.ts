@@ -1,3 +1,4 @@
+import { Game } from './game.js';
 import { Player } from './player.js';
 import { stringifyMessage } from './helpers/stringify-message.js';
 import {
@@ -26,29 +27,9 @@ import {
   UpdateWinnersResponse,
   FinishGameResponse,
 } from './types/messages.js';
+import { Winner } from './types/player.js';
 import { Ship } from './types/ship.js';
 import { WebSocketWithId } from './types/websocket.js';
-import { Game } from './game.js';
-import { Winner } from './types/player.js';
-
-const getRegistrationErrorResponse = (errorText: string): RegistrationFailureResponse => ({
-  type: MessageType.Registration,
-  data: {
-    error: true,
-    errorText,
-  },
-  id: 0,
-});
-
-const getRegistrationSuccessResponse = (player: Player): RegistrationSuccessResponse => ({
-  type: MessageType.Registration,
-  data: {
-    name: player.getName(),
-    index: player.getId(),
-    error: false,
-  },
-  id: 0,
-});
 
 export const handlePlayerDisconnect = (
   socketId: string,
@@ -87,6 +68,25 @@ export const handlePlayerDisconnect = (
   }
 };
 
+const getRegistrationErrorResponse = (errorText: string): RegistrationFailureResponse => ({
+  type: MessageType.Registration,
+  data: {
+    error: true,
+    errorText,
+  },
+  id: 0,
+});
+
+const getRegistrationSuccessResponse = (player: Player): RegistrationSuccessResponse => ({
+  type: MessageType.Registration,
+  data: {
+    name: player.getName(),
+    index: player.getId(),
+    error: false,
+  },
+  id: 0,
+});
+
 export const handleRegistration = (
   message: ClientMessage,
   socket: WebSocketWithId,
@@ -101,26 +101,24 @@ export const handleRegistration = (
   const playerDto = message.data;
   const existingPlayer = playerStore.get(playerDto.name);
 
-  if (!existingPlayer) {
+  if (existingPlayer && !existingPlayer.checkPassword(playerDto.password)) {
+    socket.send(stringifyMessage(getRegistrationErrorResponse('Invalid password')));
+    return;
+  }
+
+  if (existingPlayer) {
+    existingPlayer.updateSocket(socket);
+    socket.send(stringifyMessage(getRegistrationSuccessResponse(existingPlayer)));
+  } else {
     const player = playerStore.add(playerDto, socket);
     console.log(
       `Registration.successful. name: ${player.name}, id: ${player.getId()}, socketId: ${player.getSocketId()}`
     );
     socket.send(stringifyMessage(getRegistrationSuccessResponse(player)));
-    socket.send(stringifyMessage(createUpdateRoomsResponse(roomStore)));
-    socket.send(stringifyMessage(createUpdateWinnersResponse(highScores.getTopTenPlayers())));
-    return;
   }
 
-  if (existingPlayer.checkPassword(playerDto.password)) {
-    existingPlayer.updateSocket(socket);
-    socket.send(stringifyMessage(getRegistrationSuccessResponse(existingPlayer)));
-    socket.send(stringifyMessage(createUpdateRoomsResponse(roomStore)));
-    socket.send(stringifyMessage(createUpdateWinnersResponse(highScores.getTopTenPlayers())));
-    return;
-  }
-
-  socket.send(stringifyMessage(getRegistrationErrorResponse('Invalid password')));
+  socket.send(stringifyMessage(createUpdateRoomsResponse(roomStore)));
+  socket.send(stringifyMessage(createUpdateWinnersResponse(highScores.getTopTenPlayers())));
 };
 
 export const createGameStartResponse = (playerId: number, playerShips: Ship[]): StartGameResponse => {
