@@ -1,26 +1,23 @@
 import { Game } from '../game.js';
-import { Player } from '../player.js';
 
 export class GameStore {
   private index = 0;
-  private games: Map<number, Game> = new Map();
+  private games: Map<number, Game> = new Map(); // gameId, Game
 
-  add(player: Player): Game {
+  create(): Game {
     const gameId = this.index;
-
     const game = new Game(gameId);
-    game.addPlayer(player);
     this.games.set(gameId, game);
     this.index++;
 
     return game;
   }
 
-  get(id: number): Game | null {
-    return this.games.get(id) ?? null;
+  get(gameId: number): Game | null {
+    return this.games.get(gameId) ?? null;
   }
 
-  delete(id: number): boolean {
-    return this.games.delete(id);
+  delete(gameId: number): boolean {
+    return this.games.delete(gameId);
   }
 }

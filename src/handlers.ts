@@ -202,10 +202,11 @@ export const handleAddPlayerToRoom = (
   }
 
   const otherPlayer = room.getPlayers()[0];
-  const game = gameStore.add(otherPlayer);
+  const game = gameStore.create();
   const gameId = game.getId();
-  otherPlayer.setGameId(gameId);
+  game.addPlayer(otherPlayer);
   game.addPlayer(player);
+  otherPlayer.setGameId(gameId);
   player.setGameId(gameId);
   roomStore.delete(roomId);
 
