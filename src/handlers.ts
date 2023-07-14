@@ -180,38 +180,38 @@ export const handleAddPlayerToRoom = (
   playerStore: PlayerStore,
   roomStore: RoomStore,
   gameStore: GameStore
-): Game => {
+): void => {
   if (!isAddUserToRoomRequest(message)) {
-    throw new Error('Message have invalid format');
+    console.error('add_user_to_room: Message have invalid format');
+    return;
   }
 
   const roomId = message.data.indexRoom;
   const player = playerStore.getBySocketId(socketId);
 
   if (!player) {
-    throw new Error('Player not found');
+    console.error(`add_user_to_room: Player not found; socketId: ${socketId}`);
+    return;
   }
 
   const room = roomStore.get(roomId);
 
   if (!room) {
-    throw new Error('Room not found');
+    console.error(`add_user_to_room: Room with ID ${roomId} not found`);
+    return;
   }
 
   const otherPlayer = room.getPlayers()[0];
-
   const game = gameStore.add(otherPlayer);
   const gameId = game.getId();
   otherPlayer.setGameId(gameId);
-  player.setGameId(gameId);
   game.addPlayer(player);
+  player.setGameId(gameId);
   roomStore.delete(roomId);
 
-  sendCreateGame(player, game.getId(), player.getId());
-  sendCreateGame(otherPlayer, game.getId(), otherPlayer.getId());
   broadcastUpdateRooms(playerStore, roomStore);
-
-  return game;
+  sendCreateGame(player, gameId, player.getId());
+  sendCreateGame(otherPlayer, gameId, otherPlayer.getId());
 };
 
 export const createTurnResponse = (playerId: number): TurnResponse => {
