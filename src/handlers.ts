@@ -1,4 +1,3 @@
-import { Game } from './game.js';
 import { Player } from './player.js';
 import { stringifyMessage } from './helpers/stringify-message.js';
 import {
@@ -225,20 +224,20 @@ export const createTurnResponse = (playerId: number): TurnResponse => {
   };
 };
 
-export const handleAddShips = (message: ClientMessage, ws: WebSocketWithId, gameStore: GameStore): void => {
+export const handleAddShips = (message: ClientMessage, gameStore: GameStore): void => {
   if (!isAddShipsRequest(message)) {
-    throw new Error('add_ships: Invalid message format');
+    console.error('add_ships: Invalid message format');
+    return;
   }
 
-  const { gameId } = message.data;
+  const { gameId, ships, indexPlayer: playerId } = message.data;
   const game = gameStore.get(gameId);
 
   if (!game) {
-    throw new Error(`Game with id ${gameId} not found`);
+    console.error(`add_ships: Game with id ${gameId} not found`);
+    return;
   }
 
-  const playerId = message.data.indexPlayer;
-  const ships = message.data.ships;
   game.placeShipsForPlayerId(playerId, ships);
 
   if (game.isGameReadyToStart()) {
