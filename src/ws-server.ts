@@ -34,7 +34,7 @@ const processMessage = (message: ClientMessage, ws: WebSocketWithId): void => {
     }
 
     case MessageType.CreateRoom: {
-      handleCreateRoom(ws, roomStore, playerStore);
+      handleCreateRoom(ws.id, roomStore, playerStore);
       break;
     }
 

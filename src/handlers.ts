@@ -161,11 +161,11 @@ export const sendCreateGame = (player: Player, gameId: number, otherPlayedId: nu
   player.send(stringifyMessage(message));
 };
 
-export const handleCreateRoom = (socket: WebSocketWithId, roomStore: RoomStore, playerStore: PlayerStore): void => {
-  const player = playerStore.getBySocketId(socket.id);
+export const handleCreateRoom = (socketId: string, roomStore: RoomStore, playerStore: PlayerStore): void => {
+  const player = playerStore.getBySocketId(socketId);
 
   if (!player) {
-    console.error(`create_room: Player not found, socketId: ${socket.id}`);
+    console.error(`create_room: Player not found, socketId: ${socketId}`);
     return;
   }
 
