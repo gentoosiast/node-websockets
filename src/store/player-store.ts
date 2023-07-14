@@ -41,10 +41,6 @@ export class PlayerStore {
     return null;
   }
 
-  getBySocket(socket: WebSocketWithId): Player | null {
-    return this.getBySocketId(socket.id);
-  }
-
   getAll(): Player[] {
     return [...this.players.values()];
   }

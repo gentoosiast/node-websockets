@@ -158,7 +158,7 @@ export const sendCreateGame = (player: Player, gameId: number, otherPlayedId: nu
 };
 
 export const handleCreateRoom = (socket: WebSocketWithId, roomStore: RoomStore, playerStore: PlayerStore): void => {
-  const player = playerStore.getBySocket(socket);
+  const player = playerStore.getBySocketId(socket.id);
 
   if (!player) {
     throw new Error('Player not found');
@@ -170,7 +170,7 @@ export const handleCreateRoom = (socket: WebSocketWithId, roomStore: RoomStore, 
 
 export const handleAddPlayerToRoom = (
   message: ClientMessage,
-  ws: WebSocketWithId,
+  socket: WebSocketWithId,
   playerStore: PlayerStore,
   roomStore: RoomStore,
   gameStore: GameStore
@@ -180,7 +180,7 @@ export const handleAddPlayerToRoom = (
   }
 
   const roomId = message.data.indexRoom;
-  const player = playerStore.getBySocket(ws);
+  const player = playerStore.getBySocketId(socket.id);
 
   if (!player) {
     throw new Error('Player not found');
