@@ -1,12 +1,13 @@
 import { Game } from '../game.js';
+import { GameMode } from '../types/game.js';
 
 export class GameStore {
   private index = 0;
   private games: Map<number, Game> = new Map(); // gameId, Game
 
-  create(): Game {
+  create(gameMode?: GameMode): Game {
     const gameId = this.index;
-    const game = new Game(gameId);
+    const game = new Game(gameId, gameMode);
     this.games.set(gameId, game);
     this.index++;
 

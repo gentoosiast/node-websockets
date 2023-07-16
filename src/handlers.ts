@@ -1,4 +1,5 @@
 import { Player } from './player.js';
+import { getRandomNumber } from './helpers/random.js';
 import { socketSend } from './helpers/socket-send.js';
 import {
   isRegistrationRequest,
@@ -6,12 +7,14 @@ import {
   isAttackRequest,
   isRandomAttackRequest,
   isAddUserToRoomRequest,
+  isSinglePlayRequest,
 } from './helpers/validators.js';
 import { PlayerStore } from './store/player-store.js';
 import { GameStore } from './store/game-store.js';
 import { RoomStore } from './store/room-store.js';
 import { highScores } from './store/score-table.js';
 import { Position } from './types/board.js';
+import { GameMode } from './types/game.js';
 import {
   AttackResponse,
   AttackStatus,
@@ -29,6 +32,7 @@ import {
 import { Winner } from './types/player.js';
 import { Ship } from './types/ship.js';
 import { WebSocketWithId } from './types/websocket.js';
+import { BOT_PLAYER_ID, MAX_BOT_TURN_DELAY, MIN_BOT_TURN_DELAY } from './constants/index.js';
 
 export const handlePlayerDisconnect = (
   socketId: string,
@@ -305,7 +309,6 @@ const attack = (
           highScores.addWinner(player.getName());
           playerStore.broadcast(createUpdateWinnersResponse(highScores.getTopWinners()));
         }
-        player.setGameId(null);
       });
       gameStore.delete(gameId);
       game.broadcast(createFinishGameResponse(playerId));
@@ -313,6 +316,11 @@ const attack = (
     }
   }
   game.broadcast(createTurnResponse(game.getCurrentPlayerId()));
+  if (game.getGameMode() === GameMode.SinglePlay && game.getCurrentPlayerId() === BOT_PLAYER_ID) {
+    setTimeout(() => {
+      attack(gameStore, gameId, playerStore, BOT_PLAYER_ID, null);
+    }, getRandomNumber(MIN_BOT_TURN_DELAY, MAX_BOT_TURN_DELAY));
+  }
 };
 
 export const handleRandomAttack = (message: ClientMessage, gameStore: GameStore, playerStore: PlayerStore): void => {
@@ -335,6 +343,24 @@ export const handleAttack = (message: ClientMessage, gameStore: GameStore, playe
   attack(gameStore, gameId, playerStore, playerId, { x, y });
 };
 
-export const handleSinglePlay = (socketId: string, gameStore: GameStore, playerStore: PlayerStore): void => {
-  console.log('Single play not implemented yet');
+export const handleSinglePlay = (
+  message: ClientMessage,
+  socketId: string,
+  gameStore: GameStore,
+  playerStore: PlayerStore
+): void => {
+  if (!isSinglePlayRequest(message)) {
+    console.error(`single_play: Invalid message format`);
+    return;
+  }
+
+  const player = playerStore.getBySocketId(socketId);
+  if (!player) {
+    console.error(`single_play: Player not found; socketId: ${socketId}`);
+    return;
+  }
+
+  const game = gameStore.create(GameMode.SinglePlay);
+  game.addPlayer(player);
+  sendCreateGameResponse(player, game.getId());
 };

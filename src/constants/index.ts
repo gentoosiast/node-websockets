@@ -4,3 +4,6 @@ export const WS_HTTP_PORT = 3000;
 export const MINIMUM_USERNAME_LENGTH = 5;
 export const MINIMUM_PASSWORD_LENGTH = 5;
 export const BOARD_SIZE = 10;
+export const BOT_PLAYER_ID = -1;
+export const MIN_BOT_TURN_DELAY = 1000;
+export const MAX_BOT_TURN_DELAY = 3000;

@@ -1,8 +1,12 @@
 import { Board } from './board.js';
 import { Player } from './player.js';
+import { BotPlayer } from './bot-player.js';
+import { ShipPlacementGenerator } from './ship-placement-generator.js';
 import { Position, ShootResult } from './types/board.js';
+import { GameMode } from './types/game.js';
 import { AttackStatus } from './types/messages.js';
 import { Ship } from './types/ship.js';
+import { BOT_PLAYER_ID } from './constants/index.js';
 
 interface PlayerData {
   player: Player;
@@ -17,10 +21,20 @@ export class Game {
   private currentPlayerId = -1;
   private isGameOverStatus = false;
 
-  constructor(private id: number) {}
+  constructor(private id: number, private gameMode = GameMode.TwoPlayers) {
+    if (this.gameMode === GameMode.SinglePlay) {
+      const bot = new BotPlayer(this.getId());
+      this.addPlayer(bot);
+      this.placeShipsForPlayerId(bot.getId(), new ShipPlacementGenerator().createShipsArrangement());
+    }
+  }
 
   getId(): number {
     return this.id;
+  }
+
+  getGameMode(): GameMode {
+    return this.gameMode;
   }
 
   isGameReadyToStart(): boolean {
@@ -43,7 +57,7 @@ export class Game {
 
     const playerId = player.getId();
 
-    if (this.currentPlayerId === -1) {
+    if (this.currentPlayerId === -1 && player.getId() !== BOT_PLAYER_ID) {
       // host is first
       this.currentPlayerId = playerId;
     }

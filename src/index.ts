@@ -39,7 +39,7 @@ const processMessage = (message: ClientMessage, ws: WebSocketWithId): void => {
     [MessageType.AddShips]: () => handleAddShips(message, gameStore),
     [MessageType.Attack]: () => handleAttack(message, gameStore, playerStore),
     [MessageType.RandomAttack]: () => handleRandomAttack(message, gameStore, playerStore),
-    [MessageType.SinglePlay]: () => handleSinglePlay(ws.id, gameStore, playerStore),
+    [MessageType.SinglePlay]: () => handleSinglePlay(message, ws.id, gameStore, playerStore),
   };
 
   if (!(message.type in handlers)) {
