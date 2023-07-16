@@ -7,7 +7,7 @@ export class Player {
     public name: string,
     private password: string,
     private id: number,
-    private socket: WebSocketWithId,
+    private socket: WebSocketWithId | null,
     private gameId: number | null = null
   ) {}
 
@@ -19,11 +19,11 @@ export class Player {
     return this.name;
   }
 
-  getSocketId(): string {
-    return this.socket.id;
+  getSocketId(): string | null {
+    return this.socket ? this.socket.id : null;
   }
 
-  updateSocket(socket: WebSocketWithId): void {
+  updateSocket(socket: WebSocketWithId | null): void {
     this.socket = socket;
   }
 
@@ -40,7 +40,9 @@ export class Player {
   }
 
   send(message: unknown): void {
-    socketSend(this.socket, message);
+    if (this.socket) {
+      socketSend(this.socket, message);
+    }
   }
 
   toJSON(): PlayerDto {

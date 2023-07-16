@@ -18,6 +18,11 @@ export class GameStore {
   }
 
   delete(gameId: number): boolean {
+    const game = this.games.get(gameId);
+
+    if (game) {
+      game.getPlayers().forEach((player) => player.setGameId(null));
+    }
     return this.games.delete(gameId);
   }
 }

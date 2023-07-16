@@ -41,6 +41,7 @@ export const handlePlayerDisconnect = (
   if (!player) {
     return;
   }
+  player.updateSocket(null);
 
   const room = roomStore.getRoomByPlayerId(player.getId());
   if (room) {
@@ -49,7 +50,6 @@ export const handlePlayerDisconnect = (
   }
 
   const gameId = player.getGameId();
-  player.setGameId(null);
   if (gameId === null) {
     return;
   }
@@ -60,6 +60,7 @@ export const handlePlayerDisconnect = (
   }
 
   const opponent = game.getPlayers().find((p) => p.getId() !== player.getId());
+  gameStore.delete(gameId);
   if (opponent) {
     highScores.addWinner(opponent.getName());
     playerStore.broadcast(createUpdateWinnersResponse(highScores.getTopWinners()));
