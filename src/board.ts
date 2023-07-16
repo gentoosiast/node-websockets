@@ -87,30 +87,6 @@ export class Board {
     return position.x >= 0 && position.x < BOARD_SIZE && position.y >= 0 && position.y < BOARD_SIZE;
   }
 
-  private getEmptyAdjacentPositions(position: Position): Position[] {
-    const emptyPositions: Position[] = [];
-
-    for (let i = -1; i <= 1; i++) {
-      for (let j = -1; j <= 1; j++) {
-        if (i === 0 && j === 0) {
-          continue;
-        }
-
-        if (
-          position.x + i >= 0 &&
-          position.x + i < BOARD_SIZE &&
-          position.y + j >= 0 &&
-          position.y + j < BOARD_SIZE &&
-          this.board[position.y + j][position.x + i] === PositionType.Empty
-        ) {
-          emptyPositions.push({ x: position.x + i, y: position.y + j });
-        }
-      }
-    }
-
-    return emptyPositions;
-  }
-
   private getShipPositions(ship: Ship): Position[] {
     const shipPositions: Position[] = [];
 
