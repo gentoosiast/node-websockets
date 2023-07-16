@@ -8,6 +8,7 @@ import {
   AddShipsRequest,
   AttackRequest,
   RandomAttackRequest,
+  SinglePlayRequest,
 } from '../types/messages.js';
 import { PlayerRegisterDto } from '../types/player.js';
 import { Ship, ShipSize } from '../types/ship.js';
@@ -201,6 +202,23 @@ export const isRandomAttackRequest = (value: unknown): value is RandomAttackRequ
     typeof value.data.gameId === 'number' &&
     'indexPlayer' in value.data &&
     typeof value.data.indexPlayer === 'number' &&
+    'id' in value &&
+    value.id === 0
+  ) {
+    return true;
+  }
+
+  return false;
+};
+
+export const isSinglePlayRequest = (value: unknown): value is SinglePlayRequest => {
+  if (
+    value &&
+    typeof value === 'object' &&
+    'type' in value &&
+    value.type === MessageType.SinglePlay &&
+    'data' in value &&
+    value.data === '' &&
     'id' in value &&
     value.id === 0
   ) {

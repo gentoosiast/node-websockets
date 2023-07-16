@@ -16,6 +16,7 @@ export enum MessageType {
   RandomAttack = 'randomAttack',
   UpdateWinners = 'update_winners',
   FinishGame = 'finish',
+  SinglePlay = 'single_play',
 }
 
 export interface ClientMessage {
@@ -151,5 +152,11 @@ export interface FinishGameResponse {
   data: {
     winPlayer: number;
   };
+  id: 0;
+}
+
+export interface SinglePlayRequest {
+  type: MessageType.SinglePlay;
+  data: '';
   id: 0;
 }

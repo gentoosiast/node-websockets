@@ -8,6 +8,7 @@ import {
   handleAttack,
   handleRandomAttack,
   handlePlayerDisconnect,
+  handleSinglePlay,
 } from './handlers.js';
 import { GameStore } from './store/game-store.js';
 import { PlayerStore } from './store/player-store.js';
@@ -31,40 +32,20 @@ const roomStore = new RoomStore(); // rooms with only 1 player
 const gameStore = new GameStore();
 
 const processMessage = (message: ClientMessage, ws: WebSocketWithId): void => {
-  switch (message.type) {
-    case MessageType.Registration: {
-      handleRegistration(message, ws, playerStore, roomStore);
-      break;
-    }
+  const handlers: { [key: string]: () => void } = {
+    [MessageType.Registration]: () => handleRegistration(message, ws, playerStore, roomStore),
+    [MessageType.CreateRoom]: () => handleCreateRoom(ws.id, roomStore, playerStore),
+    [MessageType.AddUserToRoom]: () => handleAddPlayerToRoom(message, ws.id, playerStore, roomStore, gameStore),
+    [MessageType.AddShips]: () => handleAddShips(message, gameStore),
+    [MessageType.Attack]: () => handleAttack(message, gameStore, playerStore),
+    [MessageType.RandomAttack]: () => handleRandomAttack(message, gameStore, playerStore),
+    [MessageType.SinglePlay]: () => handleSinglePlay(ws.id, gameStore, playerStore),
+  };
 
-    case MessageType.CreateRoom: {
-      handleCreateRoom(ws.id, roomStore, playerStore);
-      break;
-    }
-
-    case MessageType.AddUserToRoom: {
-      handleAddPlayerToRoom(message, ws.id, playerStore, roomStore, gameStore);
-      break;
-    }
-
-    case MessageType.AddShips: {
-      handleAddShips(message, gameStore);
-      break;
-    }
-
-    case MessageType.Attack: {
-      handleAttack(message, gameStore, playerStore);
-      break;
-    }
-
-    case MessageType.RandomAttack: {
-      handleRandomAttack(message, gameStore, playerStore);
-      break;
-    }
-
-    default: {
-      console.error(`Unsupported message type: ${message.type}`);
-    }
+  if (!(message.type in handlers)) {
+    console.error(`Unsupported message type: ${message.type}`);
+  } else {
+    handlers[message.type]();
   }
 };
 

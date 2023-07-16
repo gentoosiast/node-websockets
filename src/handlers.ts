@@ -334,3 +334,7 @@ export const handleAttack = (message: ClientMessage, gameStore: GameStore, playe
   const { gameId, indexPlayer: playerId, x, y } = message.data;
   attack(gameStore, gameId, playerStore, playerId, { x, y });
 };
+
+export const handleSinglePlay = (socketId: string, gameStore: GameStore, playerStore: PlayerStore): void => {
+  console.log('Single play not implemented yet');
+};
