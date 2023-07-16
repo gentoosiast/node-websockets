@@ -1,3 +1,4 @@
+import { Game } from './game.js';
 import { Player } from './player.js';
 import { getRandomNumber } from './helpers/random.js';
 import { socketSend } from './helpers/socket-send.js';
@@ -282,6 +283,17 @@ const createFinishGameResponse = (winnerId: number): FinishGameResponse => {
   };
 };
 
+const finishGame = (playerId: number, playerStore: PlayerStore, game: Game, gameStore: GameStore): void => {
+  game.getPlayers().forEach((player) => {
+    if (playerId === player.getId()) {
+      highScores.addWinner(player.getName());
+      playerStore.broadcast(createUpdateWinnersResponse(highScores.getTopWinners()));
+    }
+  });
+  gameStore.delete(game.getId());
+  game.broadcast(createFinishGameResponse(playerId));
+};
+
 const attack = (
   gameStore: GameStore,
   gameId: number,
@@ -296,6 +308,11 @@ const attack = (
     return;
   }
 
+  if (!game.isCurrentPlayer(playerId)) {
+    console.error(`Attack: Player ${playerId} is not the current player`);
+    return;
+  }
+
   const shootResult = position ? game.attack(playerId, position) : game.performRandomAttack(playerId);
   game.broadcast(createAttackResponse(shootResult.position, playerId, shootResult.status));
   if (shootResult.status === AttackStatus.Killed) {
@@ -304,14 +321,7 @@ const attack = (
     });
 
     if (game.isGameOver()) {
-      game.getPlayers().forEach((player) => {
-        if (playerId === player.getId()) {
-          highScores.addWinner(player.getName());
-          playerStore.broadcast(createUpdateWinnersResponse(highScores.getTopWinners()));
-        }
-      });
-      gameStore.delete(gameId);
-      game.broadcast(createFinishGameResponse(playerId));
+      finishGame(playerId, playerStore, game, gameStore);
       return;
     }
   }

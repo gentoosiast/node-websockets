@@ -136,11 +136,6 @@ export class Game {
       return { status: AttackStatus.Miss, position: { x: -1, y: -1 }, adjacent: null };
     }
 
-    if (!this.isCurrentPlayer(playerId)) {
-      console.error(`Can't perform attack: player with id ${playerId} is not the current player`);
-      return { status: AttackStatus.Miss, position: { x: -1, y: -1 }, adjacent: null };
-    }
-
     const opponentId = this.getOpponentId();
     const opponentData = this.playerMap.get(opponentId);
 
@@ -170,7 +165,7 @@ export class Game {
     this.playerMap.forEach(({ player }) => player.send(message));
   }
 
-  private isCurrentPlayer(playerId: number): boolean {
+  isCurrentPlayer(playerId: number): boolean {
     return playerId === this.currentPlayerId;
   }
 
