@@ -12,11 +12,12 @@ interface PlayerData {
 type PlayerMap = Map<number, PlayerData>; // player id, player data
 
 export class Game {
+  private playerMap: PlayerMap = new Map();
   private boardsWithShips = 0;
   private currentPlayerId = -1;
   private isGameOverStatus = false;
 
-  constructor(private id: number, private players: PlayerMap = new Map()) {}
+  constructor(private id: number) {}
 
   getId(): number {
     return this.id;
@@ -35,7 +36,7 @@ export class Game {
   }
 
   addPlayer(player: Player): void {
-    if (this.players.size === 2) {
+    if (this.playerMap.size === 2) {
       console.error(`Game with id ${this.getId()} already has 2 players`);
       return;
     }
@@ -46,11 +47,12 @@ export class Game {
       // host is first
       this.currentPlayerId = playerId;
     }
-    this.players.set(playerId, { player, board: new Board(), ships: [] });
+    player.setGameId(this.getId());
+    this.playerMap.set(playerId, { player, board: new Board(), ships: [] });
   }
 
   placeShipsForPlayerId(playerId: number, ships: Ship[]): void {
-    const playerData = this.players.get(playerId);
+    const playerData = this.playerMap.get(playerId);
 
     if (!playerData) {
       console.error(`Can't place ships: player with ${playerId} not found in game with id ${this.getId()}`);
@@ -64,7 +66,7 @@ export class Game {
   }
 
   getShipsForPlayerId(playerId: number): Ship[] {
-    const playerData = this.players.get(playerId);
+    const playerData = this.playerMap.get(playerId);
 
     if (!playerData) {
       console.error(`Can't get ships: player with ${playerId} not found in game with id ${this.getId()}`);
@@ -75,7 +77,7 @@ export class Game {
   }
 
   performRandomAttack(playerId: number): ShootResult {
-    const playerData = this.players.get(playerId);
+    const playerData = this.playerMap.get(playerId);
 
     if (!playerData) {
       console.error(
@@ -90,7 +92,7 @@ export class Game {
     }
 
     const opponentId = this.getOpponentId();
-    const opponentData = this.players.get(opponentId);
+    const opponentData = this.playerMap.get(opponentId);
 
     if (!opponentData) {
       console.error(
@@ -113,7 +115,7 @@ export class Game {
   }
 
   attack(playerId: number, position: Position): ShootResult {
-    const playerData = this.players.get(playerId);
+    const playerData = this.playerMap.get(playerId);
 
     if (!playerData) {
       console.error(`Can't perform attack: player with id ${playerId} not found in game with id ${this.getId()}`);
@@ -126,7 +128,7 @@ export class Game {
     }
 
     const opponentId = this.getOpponentId();
-    const opponentData = this.players.get(opponentId);
+    const opponentData = this.playerMap.get(opponentId);
 
     if (!opponentData) {
       console.error(`Can't perform attack: opponent with id ${opponentId} not found in game with id ${this.getId()}`);
@@ -147,24 +149,11 @@ export class Game {
   }
 
   getPlayers(): Player[] {
-    return Array.from(this.players.values()).map((playerData) => playerData.player);
+    return Array.from(this.playerMap.values()).map((playerData) => playerData.player);
   }
 
   broadcast(message: unknown): void {
-    this.players.forEach(({ player }) => player.send(message));
-  }
-
-  sendToPlayerId(playerId: number, message: string): void {
-    const playerData = this.players.get(playerId);
-
-    if (!playerData) {
-      console.error(
-        `Can't send message to player with id ${playerId}: player with id ${playerId} not found in game with id ${this.getId()}`
-      );
-      return;
-    }
-
-    playerData.player.send(message);
+    this.playerMap.forEach(({ player }) => player.send(message));
   }
 
   private isCurrentPlayer(playerId: number): boolean {
@@ -172,7 +161,7 @@ export class Game {
   }
 
   private getOpponentId(): number {
-    const playerIds = Array.from(this.players.keys());
+    const playerIds = Array.from(this.playerMap.keys());
 
     return playerIds[(playerIds.indexOf(this.currentPlayerId) + 1) % playerIds.length];
   }

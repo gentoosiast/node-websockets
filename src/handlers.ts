@@ -182,30 +182,30 @@ export const handleAddPlayerToRoom = (
     return;
   }
 
-  const roomId = message.data.indexRoom;
   const player = playerStore.getBySocketId(socketId);
-
   if (!player) {
     console.error(`add_user_to_room: Player not found; socketId: ${socketId}`);
     return;
   }
 
+  const roomId = message.data.indexRoom;
   const room = roomStore.get(roomId);
-
   if (!room) {
     console.error(`add_user_to_room: Room with ID ${roomId} not found`);
     return;
   }
 
   const otherPlayer = room.getPlayers()[0];
+  if (otherPlayer.getSocketId() === socketId) {
+    console.error(`add_user_to_room: Player ${player.getName()} is already in room`);
+    return;
+  }
   const game = gameStore.create();
   const gameId = game.getId();
+
   game.addPlayer(otherPlayer);
   game.addPlayer(player);
-  otherPlayer.setGameId(gameId);
-  player.setGameId(gameId);
   roomStore.delete(roomId);
-
   broadcastUpdateRooms(playerStore, roomStore);
   sendCreateGameResponse(player, gameId);
   sendCreateGameResponse(otherPlayer, gameId);
