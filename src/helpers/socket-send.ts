@@ -3,7 +3,10 @@ import { WebSocketWithId } from '../types/websocket.js';
 
 export const socketSend = (socket: WebSocketWithId, message: unknown): void => {
   try {
-    socket.send(stringifyMessage(message));
+    const stringifiedMessage = stringifyMessage(message);
+
+    console.log(`Send message to client ${socket.id}: ${stringifiedMessage}`);
+    socket.send(stringifiedMessage);
   } catch (err) {
     if (err instanceof Error) {
       console.error(`An error happened: ${err.message}`);
