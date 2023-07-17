@@ -16,7 +16,7 @@ Use Node.js LTS version (at the time of writing 18.16.1)
 - `npm run start` - start app in production mode
 - `npm run start:dev` - start app in development mode with nodemon
 - `npm run lint` - lint source files with ESLint
-- `npm run prettier` - format source files & configs with Prettier
+- `npm run format` - format source files & configs with Prettier
 
 ## Implementation details
 

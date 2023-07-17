@@ -7,7 +7,7 @@
   "private": true,
   "scripts": {
     "lint": "npx eslint --fix src",
-    "prettier": "npx prettier --write .",
+    "format": "npx prettier --write .",
     "start": "ts-node-esm ./src/index.ts",
     "start:dev": "nodemon --exec ts-node-esm ./src/index.ts"
   },
