@@ -2,6 +2,10 @@
 
 RS School NodeJS 2023 Q2 - Week 4 Task
 
+## Requirements
+
+Use Node.js LTS version (at the time of writing 18.16.1)
+
 ## Installation
 
 1. Clone/download this repository
