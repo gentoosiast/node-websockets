@@ -7,3 +7,4 @@ export const BOARD_SIZE = 10;
 export const BOT_PLAYER_ID = -1;
 export const MIN_BOT_TURN_DELAY = 1000;
 export const MAX_BOT_TURN_DELAY = 3000;
+export const WEBSOCKET_SHUTDOWN_STATUS_CODE = 1000;

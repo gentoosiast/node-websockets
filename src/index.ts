@@ -17,7 +17,7 @@ import { generateUUID } from './helpers/uuid.js';
 import { parseMessage } from './helpers/parse-message.js';
 import { ClientMessage, MessageType } from './types/messages.js';
 import { WebSocketWithId } from './types/websocket.js';
-import { FRONTEND_HTTP_PORT, WS_HOSTNAME, WS_HTTP_PORT } from './constants/index.js';
+import { FRONTEND_HTTP_PORT, WS_HOSTNAME, WS_HTTP_PORT, WEBSOCKET_SHUTDOWN_STATUS_CODE } from './constants/index.js';
 
 console.log(`Starting static HTTP server on the ${FRONTEND_HTTP_PORT} port`);
 httpServer.listen(FRONTEND_HTTP_PORT);
@@ -69,4 +69,9 @@ wss.on('connection', (ws: WebSocketWithId) => {
       console.error(error);
     }
   });
+});
+
+process.on('SIGINT', () => {
+  console.log('Shutting down server...');
+  wss.clients.forEach((client) => client.close(WEBSOCKET_SHUTDOWN_STATUS_CODE, 'Shutting down server'));
 });
