@@ -72,7 +72,7 @@ export class Board {
     do {
       x = getRandomNumber(0, BOARD_SIZE - 1);
       y = getRandomNumber(0, BOARD_SIZE - 1);
-    } while (this.getPosition({ x, y }) !== PositionType.Unknown);
+    } while ([PositionType.Empty, PositionType.Shot, PositionType.Killed].includes(this.getPosition({ x, y })));
 
     return this.shoot({ x, y });
   }
