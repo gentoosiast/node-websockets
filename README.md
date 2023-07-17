@@ -1,31 +1,26 @@
-# RSSchool NodeJS websocket task template
-> Static http server and base task packages. 
-> By default WebSocket client tries to connect to the 3000 port.
+# WebSocket server for BattleShip game
+
+RS School NodeJS 2023 Q2 - Week 4 Task
+
+## Requirements
+
+Use Node.js LTS version (at the time of writing 18.16.1)
 
 ## Installation
-1. Clone/download repo
+
+1. Clone/download this repository
 2. `npm install`
 
-## Usage
-**Development**
+## Provided scripts
 
-`npm run start:dev`
+- `npm run start` - start app in production mode
+- `npm run start:dev` - start app in development mode with nodemon
+- `npm run lint` - lint source files with ESLint
+- `npm run format` - format source files & configs with Prettier
 
-* App served @ `http://localhost:8181` with nodemon
+## Implementation details
 
-**Production**
-
-`npm run start`
-
-* App served @ `http://localhost:8181` without nodemon
-
----
-
-**All commands**
-
-Command | Description
---- | ---
-`npm run start:dev` | App served @ `http://localhost:8181` with nodemon
-`npm run start` | App served @ `http://localhost:8181` without nodemon
-
-**Note**: replace `npm` with `yarn` in `package.json` if you use yarn.
+- WebSocket server starts on port 3000. Web interface for the game is available on port 8181
+- WebSocket server logs informational messages & info about problems to console
+- Simple dumb bot for single player mode is also implemented
+- If you shoot at an already open empty tile, the turn transition to other player will not occur
