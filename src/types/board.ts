@@ -5,7 +5,12 @@ export interface Position {
   y: number;
 }
 
+export enum Turn {
+  SamePlayer,
+  SwitchPlayer,
+}
+
 export type ShootResult =
-  | { status: AttackStatus.Miss; position: Position; adjacent: null }
+  | { status: AttackStatus.Miss; position: Position; adjacent: null; turn: Turn }
   | { status: AttackStatus.Shot; position: Position; adjacent: null }
-  | { status: AttackStatus.Killed; position: Position; adjacent: Position[] };
+  | { status: AttackStatus.Killed; position: Position; shipPositions: Position[]; adjacent: Position[] };

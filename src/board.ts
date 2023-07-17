@@ -1,17 +1,20 @@
 import { EOL } from 'node:os';
 import { getRandomNumber } from './helpers/random.js';
-import { Position, ShootResult } from './types/board.js';
+import { Position, ShootResult, Turn } from './types/board.js';
 import { AttackStatus } from './types/messages.js';
 import { Ship, ShipDirection } from './types/ship.js';
 import { BOARD_SIZE } from './constants/index.js';
 
 enum PositionType {
-  Empty = -1,
-  Shot = -2,
+  Unknown = -1,
+  Empty = -2,
+  Shot = -3,
+  Killed = -4,
 }
 
 export class Board {
-  private board: number[][] = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(PositionType.Empty));
+  private board: number[][] = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(PositionType.Unknown));
+  private shipPositions: Map<number, Position[]> = new Map(); // ship index, array of positions it occupies
   private adjacentPositions: Map<number, Position[]> = new Map(); // ship index, array of its adjacent positions
   private shipsHealth: Map<number, number> = new Map(); // ship index, number of hits to sink
 
@@ -24,47 +27,42 @@ export class Board {
   }
 
   placeShip(ship: Ship, shipIdx: number): void {
-    this.getShipPositions(ship).forEach((position) => {
+    const shipPositions = this.getShipPositions(ship);
+    this.shipPositions.set(shipIdx, shipPositions);
+    shipPositions.forEach((position) => {
       this.setPosition(position, shipIdx);
     });
   }
 
   shoot(position: Position): ShootResult {
     const positionValue = this.getPosition(position);
-    this.setPosition(position, PositionType.Shot);
-
-    if (positionValue === PositionType.Empty) {
-      return { status: AttackStatus.Miss, position, adjacent: null };
-    }
 
     if (positionValue >= 0) {
       const shipHealth = this.shipsHealth.get(positionValue);
 
       if (!shipHealth) {
         console.error(`Can't get ship health, ship with index ${positionValue} not found`);
-        return { status: AttackStatus.Miss, position, adjacent: null };
+        return { status: AttackStatus.Miss, position, adjacent: null, turn: Turn.SamePlayer };
       }
 
       if (shipHealth === 1) {
-        // killed
-        this.shipsHealth.delete(positionValue);
-        const adjacentToShipPositions = this.adjacentPositions.get(positionValue);
-
-        if (!adjacentToShipPositions) {
-          console.error(`Can't get adjacent positions, ship with index ${positionValue} not found`);
-          return { status: AttackStatus.Miss, position, adjacent: null };
-        }
-
-        adjacentToShipPositions.forEach((position) => this.setPosition(position, PositionType.Shot));
-
-        return { status: AttackStatus.Killed, position, adjacent: adjacentToShipPositions };
+        return this.handleShipKill(position, positionValue);
       } else {
+        this.setPosition(position, PositionType.Shot);
         this.shipsHealth.set(positionValue, shipHealth - 1);
         return { status: AttackStatus.Shot, position, adjacent: null };
       }
+    } else if (positionValue === PositionType.Unknown) {
+      this.setPosition(position, PositionType.Empty);
+      return { status: AttackStatus.Miss, position, adjacent: null, turn: Turn.SwitchPlayer };
+    } else if (positionValue === PositionType.Empty) {
+      return { status: AttackStatus.Miss, position, adjacent: null, turn: Turn.SamePlayer };
+    } else if (positionValue === PositionType.Shot) {
+      return { status: AttackStatus.Shot, position: position, adjacent: null };
+    } else {
+      // PositionType.Killed
+      return { status: AttackStatus.Killed, position: position, shipPositions: [], adjacent: [] };
     }
-
-    return { status: AttackStatus.Shot, position, adjacent: null }; // shooting on position which already has been shot
   }
 
   shootAtRandomPosition(): ShootResult {
@@ -74,7 +72,7 @@ export class Board {
     do {
       x = getRandomNumber(0, BOARD_SIZE - 1);
       y = getRandomNumber(0, BOARD_SIZE - 1);
-    } while (this.getPosition({ x, y }) === PositionType.Shot);
+    } while (this.getPosition({ x, y }) !== PositionType.Unknown);
 
     return this.shoot({ x, y });
   }
@@ -175,6 +173,26 @@ export class Board {
 
   private setPosition(position: Position, value: number): void {
     this.board[position.y][position.x] = value;
+  }
+
+  private handleShipKill(position: Position, positionValue: number): ShootResult {
+    this.shipsHealth.delete(positionValue);
+
+    const adjacentToShipPositions = this.adjacentPositions.get(positionValue);
+    if (!adjacentToShipPositions) {
+      console.error(`Can't get adjacent positions, ship with index ${positionValue} not found`);
+      return { status: AttackStatus.Miss, position, adjacent: null, turn: Turn.SamePlayer };
+    }
+    adjacentToShipPositions.forEach((position) => this.setPosition(position, PositionType.Empty));
+
+    const shipPositions = this.shipPositions.get(positionValue);
+    if (!shipPositions) {
+      console.error(`Can't get ship positions, ship with index ${positionValue} not found`);
+      return { status: AttackStatus.Miss, position, adjacent: null, turn: Turn.SamePlayer };
+    }
+    shipPositions.forEach((position) => this.setPosition(position, PositionType.Killed));
+
+    return { status: AttackStatus.Killed, position, shipPositions, adjacent: adjacentToShipPositions };
   }
 
   toString(): string {

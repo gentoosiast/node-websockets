@@ -2,7 +2,7 @@ import { Board } from './board.js';
 import { Player } from './player.js';
 import { BotPlayer } from './bot-player.js';
 import { ShipPlacementGenerator } from './ship-placement-generator.js';
-import { Position, ShootResult } from './types/board.js';
+import { Position, ShootResult, Turn } from './types/board.js';
 import { GameMode } from './types/game.js';
 import { AttackStatus } from './types/messages.js';
 import { Ship } from './types/ship.js';
@@ -97,12 +97,12 @@ export class Game {
       console.error(
         `Can't perform random attack: player with id ${playerId} not found in game with id ${this.getId()}`
       );
-      return { status: AttackStatus.Miss, position: { x: -1, y: -1 }, adjacent: null };
+      return { status: AttackStatus.Miss, position: { x: -1, y: -1 }, adjacent: null, turn: Turn.SamePlayer };
     }
 
     if (!this.isCurrentPlayer(playerId)) {
       console.error(`Can't perform random attack: player with id ${playerId} is not the current player`);
-      return { status: AttackStatus.Miss, position: { x: -1, y: -1 }, adjacent: null };
+      return { status: AttackStatus.Miss, position: { x: -1, y: -1 }, adjacent: null, turn: Turn.SamePlayer };
     }
 
     const opponentId = this.getOpponentId();
@@ -112,7 +112,7 @@ export class Game {
       console.error(
         `Can't perform random attack: opponent with id ${opponentId} not found in game with id ${this.getId()}`
       );
-      return { status: AttackStatus.Miss, position: { x: -1, y: -1 }, adjacent: null };
+      return { status: AttackStatus.Miss, position: { x: -1, y: -1 }, adjacent: null, turn: Turn.SamePlayer };
     }
 
     const shootResult = opponentData.board.shootAtRandomPosition();
@@ -121,7 +121,7 @@ export class Game {
       this.isGameOverStatus = true;
     }
 
-    if (shootResult.status === AttackStatus.Miss) {
+    if (shootResult.status === AttackStatus.Miss && shootResult.turn === Turn.SwitchPlayer) {
       this.switchCurrentPlayer();
     }
 
@@ -133,7 +133,7 @@ export class Game {
 
     if (!playerData) {
       console.error(`Can't perform attack: player with id ${playerId} not found in game with id ${this.getId()}`);
-      return { status: AttackStatus.Miss, position: { x: -1, y: -1 }, adjacent: null };
+      return { status: AttackStatus.Miss, position: { x: -1, y: -1 }, adjacent: null, turn: Turn.SamePlayer };
     }
 
     const opponentId = this.getOpponentId();
@@ -141,7 +141,7 @@ export class Game {
 
     if (!opponentData) {
       console.error(`Can't perform attack: opponent with id ${opponentId} not found in game with id ${this.getId()}`);
-      return { status: AttackStatus.Miss, position: { x: -1, y: -1 }, adjacent: null };
+      return { status: AttackStatus.Miss, position: { x: -1, y: -1 }, adjacent: null, turn: Turn.SamePlayer };
     }
 
     const shootResult = opponentData.board.shoot(position);
@@ -150,7 +150,7 @@ export class Game {
       this.isGameOverStatus = true;
     }
 
-    if (shootResult.status === AttackStatus.Miss) {
+    if (shootResult.status === AttackStatus.Miss && shootResult.turn === Turn.SwitchPlayer) {
       this.switchCurrentPlayer();
     }
 

@@ -302,7 +302,6 @@ const attack = (
   position: Position | null
 ): void => {
   const game = gameStore.get(gameId);
-
   if (!game) {
     console.error(`Attack: game with id ${gameId} not found`);
     return;
@@ -314,16 +313,19 @@ const attack = (
   }
 
   const shootResult = position ? game.attack(playerId, position) : game.performRandomAttack(playerId);
-  game.broadcast(createAttackResponse(shootResult.position, playerId, shootResult.status));
   if (shootResult.status === AttackStatus.Killed) {
     shootResult.adjacent.forEach((position) => {
       game.broadcast(createAttackResponse(position, playerId, AttackStatus.Miss));
     });
-
+    shootResult.shipPositions.forEach((position) => {
+      game.broadcast(createAttackResponse(position, playerId, AttackStatus.Killed));
+    });
     if (game.isGameOver()) {
       finishGame(playerId, playerStore, game, gameStore);
       return;
     }
+  } else {
+    game.broadcast(createAttackResponse(shootResult.position, playerId, shootResult.status));
   }
   game.broadcast(createTurnResponse(game.getCurrentPlayerId()));
   if (game.getGameMode() === GameMode.SinglePlay && game.getCurrentPlayerId() === BOT_PLAYER_ID) {
